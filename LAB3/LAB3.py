@@ -1,5 +1,6 @@
 import json
 import scipy.constants as consts
+from pathlib import Path
 
 # ex 1
 class SignalInformation:
