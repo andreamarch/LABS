@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-# ex 1
 class SignalInformation:
 
     def __init__(self, signal_power, path, noise_power=0.0, latency=0.0):
@@ -33,7 +32,6 @@ class SignalInformation:
         return self.path
 
 
-# ex 2
 class Node:
     def __init__(self, label, node_dict):
         self.label = label
@@ -52,7 +50,6 @@ class Node:
         return signalinformation
 
 
-# ex 3
 class Line:
     def __init__(self, label, length):
         self.label = label
@@ -78,7 +75,6 @@ class Line:
         return signalinformation
 
 
-# ex 4
 class Network:
     def __init__(self):
         self.nodes = dict()
