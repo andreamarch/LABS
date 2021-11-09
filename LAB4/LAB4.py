@@ -3,10 +3,9 @@ import scipy.constants as consts
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import random
 
 class SignalInformation:
-
     def __init__(self, signal_power, path, noise_power=0.0, latency=0.0):
         self.signal_power = float(signal_power)
         self.path = path
@@ -15,16 +14,15 @@ class SignalInformation:
 
     def update_signal_pow(self, signal_power_increment):
         self.signal_power += signal_power_increment
-        return self.signal_power
+        return
 
     def update_noise_pow(self, noise_power_increment):
         self.noise_power += noise_power_increment
-        return self.noise_power
+        return
 
     def update_latency(self, latency_increment):
         self.latency += latency_increment
-        latency_status = True
-        return latency_status
+        return
 
     def update_node(self, node):
         if self.path[0] == node.label:
@@ -55,6 +53,7 @@ class Line:
         self.label = label
         self.length = length
         self.successive = dict()
+        self.status = 'occupied'
 
     def line_propagate(self, signalinformation):
         node_label = self.label[1]
@@ -77,6 +76,7 @@ class Line:
 
 class Network:
     def __init__(self):
+        self.weighted_lines = []
         self.nodes = dict()
         self.lines = dict()
         self.graph = dict()
@@ -107,24 +107,61 @@ class Network:
                 for i, j in self.nodes.items():
                     if i == line_label[1]:
                         line_value.successive[i] = j
+        self.weighted_lines = weigthed_nodes_build(self)
         return
 
     # implementing Dijkstra's algorithm in order to find all paths
-    def find_paths(self, start, end, path=[]):
-        start = start.upper()
+    def find_paths(self, strt, end, path=[]):
+        strt = strt.upper()
         end = end.upper()
-        path = path + [start]
-        if start == end:
+        path = path + [strt]
+        if strt == end:
             return [path]
-        if start not in self.graph:
+        if strt not in self.graph:
             return []
         paths = []
-        for node in self.graph[start]:
+        for node in self.graph[strt]:
             if node not in path:
                 newpaths = self.find_paths(node, end, path)
                 for newpath in newpaths:
                     paths.append(newpath)
         return paths
+
+    def find_best_snr(self, strt, end):
+        from_to = strt.upper() + '-' + end.upper()
+        best_snr = 0
+        best_path = ''
+        for row in self.weighted_lines.itertuples():
+            if row.FromTo == from_to:
+                if row.SNR > best_snr:
+                    path = list(row.Path.replace('->', ''))
+                    flag = True
+                    for index in range(0, len(path)-1):  # checking if one of the lines in the path is occupied
+                        label = path[index] + path[index+1]
+                        if self.lines[label].status == 'occupied':
+                            flag = False
+                    if flag:  # if one of the lines was occupied, the path and latency won't be saved
+                        best_snr = float(row.SNR)
+                        best_path = path
+        return best_snr, best_path
+
+    def find_best_latency(self, strt, end):
+        from_to = strt.upper() + '-' + end.upper()
+        best_latency = 1e99
+        best_path = ''
+        for row in self.weighted_lines.itertuples():
+            if row.FromTo == from_to:
+                if row.Latency < best_latency:
+                    path = list(row.Path.replace('->', ''))
+                    flag = True
+                    for index in range(0, len(path) - 1):  # checking if one of the lines in the path is occupied
+                        label = path[index] + path[index + 1]
+                        if self.lines[label].status == 'free':
+                            flag = False
+                    if flag:  # if one of the lines was occupied, the path and latency won't be saved
+                        best_latency = float(row.Latency)
+                        best_path = path
+        return best_latency, best_path
 
     def propagate(self, signalinformation):
         first_node = signalinformation.path[0]
@@ -164,40 +201,103 @@ class Network:
         # Show the image
         plt.show()
 
-# exercise 5
+    def stream(self, connection_list, lat_or_snr='latency'):
+        lat_or_snr = lat_or_snr.lower()
+        for i in connection_list:
+            inp = i.input
+            outp = i.output
+            if lat_or_snr == 'latency':
+                best_lat_path = self.find_best_latency(inp, outp)[1]
+                if best_lat_path != '':  # if an available path was found, the string shouldn't be empty
+                    signal = SignalInformation(i.signal_power, best_lat_path)
+                    signal = (self.propagate(signal))
+                    i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    i.latency = signal.latency
+                else:
+                    i.snr = 0
+                    i.latency = None
+            elif lat_or_snr == 'snr':
+                best_snr_path = self.find_best_snr(inp, outp)[1]
+                if best_snr_path != '':
+                    signal = SignalInformation(i.signal_power, best_snr_path)
+                    signal = (self.propagate(signal))
+                    i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    i.latency = signal.latency
+                else:
+                    i.snr = 0
+                    i.latency = None
+            else:
+                print('Please choose between strings "snr" and "latency".')
+        return
+
+# function for constructing the data frame
+def weigthed_nodes_build(network, power = 1e-3):
+    from_to = []
+    paths = []
+    signal_pow = []
+    noise = []
+    latency = []
+    path_vector = []
+    snr = []
+    for i in network.nodes.keys():
+        for j in network.nodes.keys():
+            if j != i:
+                paths.append(network.find_paths(i, j))
+
+    for i in range(0, len(paths)):
+        for j in range(0, len(paths[i])):
+            strng = ''
+            for k in range(0, len(paths[i][j])):
+                strng += paths[i][j][k]
+                if k < len(paths[i][j]) - 1:
+                    strng += '->'
+            path_vector.append(strng)
+            from_to.append(paths[i][j][0] + '-' + paths[i][j][len(paths[i][j]) - 1])
+            current_path = list(paths[i][j])
+            signal_info = SignalInformation(power, current_path)
+            network.propagate(signal_info)
+            signal_pow.append(signal_info.signal_power)
+            noise.append(signal_info.noise_power)
+            latency.append(signal_info.latency)
+            snr.append(10 * np.log10(signal_info.signal_power / signal_info.noise_power))
+
+    data = list(zip(from_to, path_vector, signal_pow, noise, snr, latency))
+    df = pd.DataFrame(data, columns=['FromTo', 'Path', 'Power', 'NoisePower', 'SNR', 'Latency'])
+    return df
+
+class Connection:
+    def __init__(self, inp, output, signal_power):
+        self.input = inp.upper()
+        self.output = output.upper()
+        self.signal_power = signal_power
+        self.snr = 0.0
+        self.latency = 0.0
+
+
 network = Network()
 network.connect()
-# network.draw_network()
-power = 1e-3
-from_to = []
-paths = []
-signal_pow = []
-noise = []
-latency = []
-path_vector = []
+nodes = list(network.nodes.keys())
+connections = []
+signal_power = 1e-3
+for i in range(0, 99):
+    new_nodes = list(nodes)
+    strt = random.choice(new_nodes)
+    new_nodes.remove(strt)
+    end = random.choice(new_nodes)
+    connections.append(Connection(strt, end, signal_power))
+network.stream(connections, 'latency')
 snr = []
-for i in network.nodes.keys():
-    for j in network.nodes.keys():
-        if j != i:
-            paths.append(network.find_paths(i, j))
+lat = []
+for i in range(0, 99):
+    snr.append(connections[i].snr)
+    lat.append(connections[i].latency)
+plt.figure(1)
+plt.plot(snr)
+plt.figure(2)
+plt.plot(lat)
+plt.show()
+# connection = [Connection('a', 'e', 1e-3), Connection('c', 'f', 1e-3)]
+# network.stream(connection, 'latency')
 
-for i in range(0, len(paths)):
-    for j in range(0, len(paths[i])):
-        strng = ''
-        for k in range(0, len(paths[i][j])):
-            strng += paths[i][j][k]
-            if k < len(paths[i][j]) - 1:
-                strng += '->'
-        path_vector.append(strng)
-        from_to.append(paths[i][j][0] + '-' + paths[i][j][len(paths[i][j]) - 1])
-        current_path = list(paths[i][j])
-        signal_info = SignalInformation(power, current_path)
-        network.propagate(signal_info)
-        signal_pow.append(signal_info.signal_power)
-        noise.append(signal_info.noise_power)
-        latency.append(signal_info.latency)
-        snr.append(10 * np.log10(signal_info.signal_power / signal_info.noise_power))
 
-data = list(zip(from_to, path_vector, signal_pow, noise, snr, latency))
-df = pd.DataFrame(data, columns=['From-To', 'Path', 'Power', 'Noise Power', 'SNR', 'Latency'])
-print(df)
+
