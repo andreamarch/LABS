@@ -3,7 +3,10 @@ import scipy.constants as consts
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
+root = Path(__file__).parent.parent
+file = root / 'resources' / 'nodes.json'
 
 # ex 1
 class SignalInformation:
@@ -24,8 +27,7 @@ class SignalInformation:
 
     def update_latency(self, latency_increment):
         self.latency += latency_increment
-        latency_status = True
-        return latency_status
+        return self.lantency
 
     def update_node(self, node):
         if self.path[0] == node.label:
@@ -84,7 +86,7 @@ class Network:
         self.nodes = dict()
         self.lines = dict()
         self.graph = dict()
-        with open('nodes.json') as json_file:
+        with open(file) as json_file:
             nodes = json.load(json_file)
         for i, j in nodes.items():
             self.nodes[i] = Node(i, j)
