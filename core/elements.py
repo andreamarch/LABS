@@ -8,6 +8,7 @@ import core.utils as utils
 
 root = Path(__file__).parent.parent
 file = root / 'resources' / 'nodes.json'
+out_dir = root / 'results'
 
 #  STATIC ELEMENTS
 class Node:
@@ -181,6 +182,9 @@ class Network:
         fig, ax = plt.subplots(1)
         ax.set_aspect('equal')
         plt.axis([-5, 5, -5, 5.5])
+        plt.title('Weighted graph of the Network')
+        plt.xlabel('x, 100*km')
+        plt.ylabel('y, 100*km')
         for i in label:
             indx = label.index(i)
             for j in self.nodes[i].connected_nodes:
@@ -196,6 +200,8 @@ class Network:
             circ.set_edgecolor('k')
             ax.txt = plt.text(xx - 0.13, yy - 0.13, s, fontsize=14)  # labels
             ax.add_patch(circ)
+        # Save as png
+        plt.savefig(out_dir/'wgraph.png')
         # Show the image
         plt.show()
 
@@ -229,7 +235,7 @@ class Network:
                     i.latency = signal.latency
                 else:  # no lines available between these nodes
                     i.snr = 0
-                    i.latency = 1e99
+                    i.latency = np.NaN
             else:  # wrong string was passed
                 print('Please choose between strings "snr" and "latency".')
         for lbl in self.lines.keys():

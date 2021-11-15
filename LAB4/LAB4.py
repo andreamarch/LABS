@@ -1,14 +1,17 @@
+import matplotlib.style
+
 import core.elements as el
 import random
 import matplotlib.pyplot as plt
 from pathlib import Path
 
 root = Path(__file__).parent.parent
-res_directory = root / 'resources'
+in_directory = root / 'resources'
+out_directory = root / 'results'
 
 network = el.Network()
 network.connect()
-network.draw_network()
+# network.draw_network()
 nodes = list(network.nodes.keys())
 connections = []
 signal_power = 1e-3
@@ -24,12 +27,24 @@ lat = []
 for i in range(0, 99):
     snr.append(connections[i].snr)
     lat.append(connections[i].latency)
+from matplotlib import style
+print(matplotlib.style.available)
+plt.style.use('ggplot')
+
 plt.figure(1)
 plt.title('SNR distribution')
-plt.hist(snr)
+plt.hist(snr, bins=12)
+plt.xlabel('SNR, dB')
+plt.ylabel('Number of occurrences')
+plt.savefig(out_directory / '4_snr_hist.png')
+
 plt.figure(2)
 plt.title('Latency distribution')
-plt.hist(lat)
+plt.hist(lat, bins=10)
+plt.xlabel('Latency, s')
+plt.ylabel('Number of occurrences')
+plt.savefig(out_directory / '4_lat_hist.png')
+
 plt.show()
 
 
