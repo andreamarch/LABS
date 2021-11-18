@@ -4,7 +4,12 @@
     <list default="true" id="0b686254-934d-46a1-8fb0-ca3ed4ed6641" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LAB4/LAB4.py" beforeDir="false" afterPath="$PROJECT_DIR$/LAB4/LAB4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB5/LAB5.py" beforeDir="false" afterPath="$PROJECT_DIR$/LAB5/LAB5.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/elements.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/elements.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/info.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/4_lat_hist.png" beforeDir="false" afterPath="$PROJECT_DIR$/results/4_lat_hist.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/4_snr_hist.png" beforeDir="false" afterPath="$PROJECT_DIR$/results/4_snr_hist.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,7 +61,7 @@
       <recent name="$PROJECT_DIR$/LAB4" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.LAB4">
+  <component name="RunManager" selected="Python.LAB5">
     <configuration name="LAB3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="LABS" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -99,6 +104,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="LAB5" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LABS" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/LAB5" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LAB5/LAB5.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="prova" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="LABS" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -122,6 +148,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.LAB5" />
         <item itemvalue="Python.LAB4" />
         <item itemvalue="Python.prova" />
         <item itemvalue="Python.LAB3" />
@@ -161,6 +188,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
@@ -170,8 +198,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/LAB4/LAB4.py</url>
-          <line>33</line>
-          <option name="timeStamp" value="21" />
+          <line>21</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/LAB5/LAB5.py</url>
+          <line>27</line>
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

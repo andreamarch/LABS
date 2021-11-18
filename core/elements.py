@@ -10,6 +10,7 @@ root = Path(__file__).parent.parent
 file = root / 'resources' / 'nodes.json'
 out_dir = root / 'results'
 
+
 #  STATIC ELEMENTS
 class Node:
     def __init__(self, label, node_dict):
@@ -18,7 +19,20 @@ class Node:
             setattr(self, el, node_dict[el])
         self.successive = dict()
 
-    def node_propagate(self, signalinformation):
+    def node_propagate(self, lightpath):
+        flag = 0
+        if len(lightpath.path) != 1:  # if not at the last node of the path
+            # save the next line label
+            line_label = lightpath.path[0] + lightpath.path[1]
+            flag = 1
+        # update the path deleting the current node
+        lightpath.update_node(self)
+        if flag == 1:
+            # calling the next line propagate method
+            self.successive[line_label].line_propagate(lightpath)
+        return lightpath
+
+    def probe(self, signalinformation):
         flag = 0
         if len(signalinformation.path) != 1:  # if not at the last node of the path
             # save the next line label
@@ -27,8 +41,8 @@ class Node:
         # update the path deleting the current node
         signalinformation.update_node(self)
         if flag == 1:
-            # calling the next line propagate method
-            self.successive[line_label].line_propagate(signalinformation)
+            # calling the next line probe method
+            self.successive[line_label].probe(signalinformation)
         return signalinformation
 
 
@@ -37,38 +51,51 @@ class Line:
         self.label = label
         self.length = length
         self.successive = dict()
-        self.status = False  # false means 'free'
+        self.state = [False] * 10  # false means 'free', 10 is the number of WDM channels
 
-    def line_propagate(self, signalinformation):
+    def line_propagate(self, lightpath):
+        # save the successive node label
+        self.state[lightpath.channel] = True
+        node_label = self.label[1]
+        # generate the noise acquired on this line
+        self.noise_generation(lightpath)
+        # generate the latency acquired on this line
+        self.latency_generation(lightpath)
+        # call the successive node
+        self.successive[node_label].node_propagate(lightpath)
+        return lightpath
+
+    def probe(self, signalinformation):
         # save the successive node label
         node_label = self.label[1]
         # generate the noise acquired on this line
         self.noise_generation(signalinformation)
         # generate the latency acquired on this line
         self.latency_generation(signalinformation)
-        # call the successive node
-        self.successive[node_label].node_propagate(signalinformation)
+        # call the successive node probe
+        self.successive[node_label].probe(signalinformation)
         return signalinformation
 
-    def latency_generation(self, signalinformation):
+    def latency_generation(self, signal_information):
         # compute the latency
         speed = consts.c * 2 / 3
         new_latency = self.length / speed
         # modify the latency in the signal information
-        signalinformation.update_latency(new_latency)
-        return signalinformation
+        signal_information.update_latency(new_latency)
+        return signal_information
 
-    def noise_generation(self, signalinformation):
+    def noise_generation(self, signal_information):
         # compute noise
-        new_noise = 1e-9 * signalinformation.signal_power * self.length
+        new_noise = 1e-9 * signal_information.signal_power * self.length
         # modify noise in the signal information
-        signalinformation.update_noise_pow(new_noise)
-        return signalinformation
+        signal_information.update_noise_pow(new_noise)
+        return signal_information
 
 
 class Network:
     def __init__(self):
         self.weighted_lines = []
+        self.route_space = []
         self.nodes = dict()
         self.lines = dict()
         self.graph = dict()
@@ -106,7 +133,8 @@ class Network:
                     if i == line_label[1]:  # while cycling on the nodes, if the line corresponds to the second
                         # element of the line, save the node in the successive of the current line
                         line_value.successive[i] = j
-        self.weighted_lines = utils.weigthed_nodes_build(self)  # build the data frame
+        self.weighted_lines = utils.weighted_lines_build(self)  # build the weighted_lines data frame
+        self.route_space = utils.route_space_build(self)  # build the route_space data frame
         return
 
     # implementing Dijkstra's algorithm in order to find all paths
@@ -130,42 +158,81 @@ class Network:
         from_to = strt.upper() + '-' + end.upper()
         best_snr = 0  # set to zero because it has to find the highest value of snr
         best_path = ''
+        free_channel = None
         for row in self.weighted_lines.itertuples():
             if row.FromTo == from_to:  # using the FromTo column of the data structure weighted_lines
                 if row.SNR > best_snr:
                     path = list(row.Path.replace('->', ''))
-                    flag = True
-                    for index in range(0, len(path)-1):  # checking if one of the lines in the path is occupied
-                        label = path[index] + path[index+1]
-                        if self.lines[label].status:  # if it's true it's occupied
-                            flag = False
-                    if flag:  # if one of the lines was occupied, the path and latency won't be saved
+                    flag = False
+                    occupancy = []
+                    channel = None
+                    for index in range(0, len(path) - 1):  # checking if one of the lines in the path is occupied
+                        label = path[index] + path[index + 1]
+                        vect = [False] * len(self.lines[label].state)
+                        for state_index in range(0, len(self.lines[label].state)):
+                            if self.lines[label].state[state_index]:  # if it's true it's occupied
+                                vect[state_index] = True  # set the flag vector true for the current index
+                        occupancy.append(vect)
+                    for j in range(0, len(occupancy[0])):  # cycle on the columns (channels)
+                        flag2 = False
+                        for i in range(0, len(occupancy)):  # cycle on the rows (lines of the path)
+                            if occupancy[i][j]:  # channel occupied
+                                flag2 = True
+                        if not flag2:
+                            # if the flag is still true after the cycle on the lines,
+                            # it means that this channel is available for all the lines of the path, so it can be used
+                            channel = j
+                            flag = True
+                            break
+                    if flag:  # if all the channels of one line were occupied, the path and latency won't be saved
+                        free_channel = channel
                         best_snr = float(row.SNR)
                         best_path = path
-        return best_snr, best_path
+        return best_snr, best_path, free_channel
 
     def find_best_latency(self, strt, end):
         from_to = strt.upper() + '-' + end.upper()
         best_latency = 1e99  # set to infinite because it has to find the lowest value of latency
         best_path = ''
+        free_channel = None
         for row in self.weighted_lines.itertuples():
             if row.FromTo == from_to:  # using the FromTo column of the data structure weighted_lines
                 if row.Latency < best_latency:
                     path = list(row.Path.replace('->', ''))
-                    flag = True
+                    flag = False
+                    occupancy = []
+                    channel = None
                     for index in range(0, len(path) - 1):  # checking if one of the lines in the path is occupied
                         label = path[index] + path[index + 1]
-                        if self.lines[label].status:  # if it's true it's occupied
-                            flag = False
+                        vect = [False] * len(self.lines[label].state)
+                        for state_index in range(0, len(self.lines[label].state)):
+                            if self.lines[label].state[state_index]:  # if it's true it's occupied
+                                vect[state_index] = True
+                        occupancy.append(vect)
+                    for j in range(0, len(occupancy[0])):
+                        flag2 = False
+                        for i in range(0, len(occupancy)):
+                            if occupancy[i][j]:  # channel occupied
+                                flag2 = True
+                        if not flag2:
+                            channel = j
+                            flag = True
+                            break
                     if flag:  # if one of the lines was occupied, the path and latency won't be saved
                         best_latency = float(row.Latency)
                         best_path = path
-        return best_latency, best_path
+                        free_channel = channel
+        return best_latency, best_path, free_channel
 
-    def propagate(self, signalinformation):
-        first_node = signalinformation.path[0]
-        self.nodes[first_node].node_propagate(signalinformation)  # calling the propagate method for the first node
-        return signalinformation
+    def propagate(self, light_path):
+        first_node = light_path.path[0]
+        self.nodes[first_node].node_propagate(light_path)  # calling the propagate method for the first node
+        return light_path
+
+    def probe(self, signal_information):
+        first_node = signal_information.path[0]
+        self.nodes[first_node].probe(signal_information)  # calling the probe method for the first node
+        return signal_information
 
     def draw_network(self):
         x = list()
@@ -201,7 +268,7 @@ class Network:
             ax.txt = plt.text(xx - 0.13, yy - 0.13, s, fontsize=14)  # labels
             ax.add_patch(circ)
         # Save as png
-        plt.savefig(out_dir/'wgraph.png')
+        plt.savefig(out_dir / 'wgraph.png')
         # Show the image
         plt.show()
 
@@ -211,35 +278,37 @@ class Network:
             inp = i.input
             outp = i.output
             if lat_or_snr == 'latency':
-                best_lat_path = self.find_best_latency(inp, outp)[1]
+                vec = list(self.find_best_latency(inp, outp))
+                best_lat_path = vec[1]
+                channel = vec[2]
                 if best_lat_path != '':  # if an available path was found, the string shouldn't be empty
-                    for index in range(0, len(best_lat_path)-1):  # setting the lines as occupied
-                        label = best_lat_path[index] + best_lat_path[index+1]
-                        self.lines[label].status = True  # line is now occupied
-                    signal = info.SignalInformation(i.signal_power, best_lat_path)  # initiate the SignalInfo instance
+                    signal = info.Lightpath(i.signal_power, best_lat_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal))  # propagate the signal info through the path
+                    utils.route_space_build(self)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
                 else:  # no lines available between these nodes
                     i.snr = 0
                     i.latency = np.NaN
+                    print('Connection blocked')
             elif lat_or_snr == 'snr':
-                best_snr_path = self.find_best_snr(inp, outp)[1]
+                vec = list(self.find_best_snr(inp, outp))
+                best_snr_path = vec[1]
+                channel = vec[2]
                 if best_snr_path != '':  # if an available path was found, the string shouldn't be empty
-                    for index in range(0, len(best_snr_path)-1):  # setting the lines as occupied
-                        label = best_snr_path[index] + best_snr_path[index+1]
-                        self.lines[label].status = True  # line is now occupied
-                    signal = info.SignalInformation(i.signal_power, best_snr_path)  # initiate the SignalInfo instance
+                    signal = info.Lightpath(i.signal_power, best_snr_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal))  # propagate the signal info through the path
+                    utils.route_space_build(self)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
                 else:  # no lines available between these nodes
                     i.snr = 0
                     i.latency = np.NaN
+                    print('Connection blocked')
             else:  # wrong string was passed
                 print('Please choose between strings "snr" and "latency".')
         for lbl in self.lines.keys():
-            self.lines[lbl].status = False  # at the end of the stream, the lines are again free
+            self.lines[lbl].state = [False] * 10  # at the end of the stream, the lines are again free
         return
 
 

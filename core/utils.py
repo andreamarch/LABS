@@ -4,7 +4,7 @@ import core.info as info
 
 
 # function for constructing the data frame
-def weigthed_nodes_build(network, power=1e-3):
+def weighted_lines_build(network, power=1e-3):
     from_to = []
     paths = []
     signal_pow = []
@@ -28,7 +28,7 @@ def weigthed_nodes_build(network, power=1e-3):
             from_to.append(paths[i][j][0] + '-' + paths[i][j][len(paths[i][j]) - 1])
             current_path = list(paths[i][j])
             signal_info = info.SignalInformation(power, current_path)
-            network.propagate(signal_info)
+            network.probe(signal_info)
             signal_pow.append(signal_info.signal_power)
             noise.append(signal_info.noise_power)
             latency.append(signal_info.latency)
@@ -38,4 +38,15 @@ def weigthed_nodes_build(network, power=1e-3):
     df = pd.DataFrame(data, columns=['FromTo', 'Path', 'Power', 'NoisePower', 'SNR', 'Latency'])
     return df
 
+
+# function for building and updating the route space dataframe
+def route_space_build(network):
+    labels = []
+    occupancy = []
+    for i, j in network.lines.items():
+        labels.append(i)
+        occupancy.append(j.state)
+    df = pd.DataFrame(occupancy)
+    df.insert(0, 'Line', labels, True)
+    return df
 

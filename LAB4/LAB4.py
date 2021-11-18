@@ -1,5 +1,3 @@
-import matplotlib.style
-
 import core.elements as el
 import random
 import matplotlib.pyplot as plt
@@ -27,8 +25,7 @@ lat = []
 for i in range(0, 99):
     snr.append(connections[i].snr)
     lat.append(connections[i].latency)
-from matplotlib import style
-print(matplotlib.style.available)
+
 plt.style.use('ggplot')
 
 plt.figure(1)
@@ -46,7 +43,3 @@ plt.ylabel('Number of occurrences')
 plt.savefig(out_directory / '4_lat_hist.png')
 
 plt.show()
-
-
-
-
