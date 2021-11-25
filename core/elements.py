@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import core.info as info
 import core.utils as utils
+import pandas as pd
 
+
+# import/export paths
 root = Path(__file__).parent.parent
 file = root / 'resources' / 'nodes.json'
 out_dir = root / 'results'
@@ -18,6 +21,7 @@ class Node:
         for el in node_dict:
             setattr(self, el, node_dict[el])
         self.successive = dict()
+        self.switching_matrix = None
 
     def node_propagate(self, lightpath):
         flag = 0
@@ -51,11 +55,11 @@ class Line:
         self.label = label
         self.length = length
         self.successive = dict()
-        self.state = [False] * 10  # false means 'free', 10 is the number of WDM channels
+        self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
 
     def line_propagate(self, lightpath):
         # save the successive node label
-        self.state[lightpath.channel] = True
+        self.state[lightpath.channel] = 0
         node_label = self.label[1]
         # generate the noise acquired on this line
         self.noise_generation(lightpath)
@@ -133,8 +137,21 @@ class Network:
                     if i == line_label[1]:  # while cycling on the nodes, if the line corresponds to the second
                         # element of the line, save the node in the successive of the current line
                         line_value.successive[i] = j
-        self.weighted_lines = utils.weighted_lines_build(self)  # build the weighted_lines data frame
-        self.route_space = utils.route_space_build(self)  # build the route_space data frame
+        # initiate the switching matrix for all nodes
+        for node_label in self.nodes.keys():
+            temp_dict = dict()
+            for x in self.nodes[node_label].connected_nodes:
+                temp_dict[x] = dict()
+                for y in self.nodes[node_label].connected_nodes:
+                    if y == x:
+                        temp_dict[x][y] = np.zeros(10, dtype=int)
+                    else:
+                        temp_dict[x][y] = np.ones(10, dtype=int)
+            self.nodes[node_label].switching_matrix = temp_dict
+        # build the weighted_lines data frame
+        self.weighted_lines = utils.weighted_lines_build(self)
+        # build the route_space data frame
+        self.route_space = utils.route_space_build(self)
         return
 
     # implementing Dijkstra's algorithm in order to find all paths
@@ -164,30 +181,19 @@ class Network:
                 if row.SNR > best_snr:
                     path = list(row.Path.replace('->', ''))
                     flag = False
-                    occupancy = []
-                    channel = None
-                    for index in range(0, len(path) - 1):  # checking if one of the lines in the path is occupied
-                        label = path[index] + path[index + 1]
-                        vect = [False] * len(self.lines[label].state)
-                        for state_index in range(0, len(self.lines[label].state)):
-                            if self.lines[label].state[state_index]:  # if it's true it's occupied
-                                vect[state_index] = True  # set the flag vector true for the current index
-                        occupancy.append(vect)
-                    for j in range(0, len(occupancy[0])):  # cycle on the columns (channels)
-                        flag2 = False
-                        for i in range(0, len(occupancy)):  # cycle on the rows (lines of the path)
-                            if occupancy[i][j]:  # channel occupied
-                                flag2 = True
-                        if not flag2:
-                            # if the flag is still true after the cycle on the lines,
-                            # it means that this channel is available for all the lines of the path, so it can be used
-                            channel = j
+                    cnt = -1
+                    current_path = self.route_space.loc[self.route_space['Path'] == row.Path]
+                    occupancy = current_path.loc[:, current_path.columns != 'Path']
+                    occupancy = pd.DataFrame.to_numpy(occupancy, dtype=int)[0]
+                    for i in occupancy:
+                        cnt += 1
+                        if i == 1:
                             flag = True
                             break
-                    if flag:  # if all the channels of one line were occupied, the path and latency won't be saved
-                        free_channel = channel
-                        best_snr = float(row.SNR)
+                    if flag:  # if one of the lines was occupied, the path and latency won't be saved
+                        best_snr = float(row.snr)
                         best_path = path
+                        free_channel = cnt
         return best_snr, best_path, free_channel
 
     def find_best_latency(self, strt, end):
@@ -200,28 +206,22 @@ class Network:
                 if row.Latency < best_latency:
                     path = list(row.Path.replace('->', ''))
                     flag = False
-                    occupancy = []
-                    channel = None
-                    for index in range(0, len(path) - 1):  # checking if one of the lines in the path is occupied
-                        label = path[index] + path[index + 1]
-                        vect = [False] * len(self.lines[label].state)
-                        for state_index in range(0, len(self.lines[label].state)):
-                            if self.lines[label].state[state_index]:  # if it's true it's occupied
-                                vect[state_index] = True
-                        occupancy.append(vect)
-                    for j in range(0, len(occupancy[0])):
-                        flag2 = False
-                        for i in range(0, len(occupancy)):
-                            if occupancy[i][j]:  # channel occupied
-                                flag2 = True
-                        if not flag2:
-                            channel = j
+                    cnt = -1
+                    # saving the row of the df corresponding to the current path
+                    current_path = self.route_space.loc[self.route_space['Path'] == row.Path]
+                    # saving the columns containing the info about the channel occupation
+                    occupancy = current_path.loc[:, current_path.columns != 'Path']
+                    occupancy = pd.DataFrame.to_numpy(occupancy, dtype=int)[0]
+                    # looking for a free channel
+                    for i in occupancy:
+                        cnt += 1
+                        if i == 1:
                             flag = True
                             break
                     if flag:  # if one of the lines was occupied, the path and latency won't be saved
                         best_latency = float(row.Latency)
                         best_path = path
-                        free_channel = channel
+                        free_channel = cnt
         return best_latency, best_path, free_channel
 
     def propagate(self, light_path):
@@ -282,9 +282,10 @@ class Network:
                 best_lat_path = vec[1]
                 channel = vec[2]
                 if best_lat_path != '':  # if an available path was found, the string shouldn't be empty
+                    current_path = list(best_lat_path)
                     signal = info.Lightpath(i.signal_power, best_lat_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal))  # propagate the signal info through the path
-                    utils.route_space_build(self)
+                    utils.route_space_update(self, current_path)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
                 else:  # no lines available between these nodes
@@ -296,9 +297,10 @@ class Network:
                 best_snr_path = vec[1]
                 channel = vec[2]
                 if best_snr_path != '':  # if an available path was found, the string shouldn't be empty
+                    current_path = list(best_snr_path)
                     signal = info.Lightpath(i.signal_power, best_snr_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal))  # propagate the signal info through the path
-                    utils.route_space_build(self)
+                    utils.route_space_update(self, current_path)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
                 else:  # no lines available between these nodes
@@ -308,7 +310,7 @@ class Network:
             else:  # wrong string was passed
                 print('Please choose between strings "snr" and "latency".')
         for lbl in self.lines.keys():
-            self.lines[lbl].state = [False] * 10  # at the end of the stream, the lines are again free
+            self.lines[lbl].state = [1] * 10  # at the end of the stream, the lines are again free
         return
 
 
