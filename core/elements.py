@@ -6,11 +6,12 @@ from pathlib import Path
 import core.info as info
 import core.utils as utils
 import pandas as pd
+from scipy.special import erfcinv
 
 
 # import/export paths
 root = Path(__file__).parent.parent
-file = root / 'resources' / 'nodes.json'
+file = root / 'resources' / 'nodes_not_full.json'
 out_dir = root / 'results'
 
 
@@ -18,13 +19,22 @@ out_dir = root / 'results'
 class Node:
     def __init__(self, label, node_dict):
         self.label = label
+        self.transceiver = 'fixed_rate'
         for el in node_dict:
             setattr(self, el, node_dict[el])
         self.successive = dict()
-        self.switching_matrix = None
 
-    def node_propagate(self, lightpath):
+    def node_propagate(self, lightpath, current_path):
         flag = 0
+        current_node = lightpath.path[0]
+        index = current_path.index(current_node)
+        if (index != 0) & (index != (len(current_path) - 1)):
+            previous_node = current_path[index-1]
+            next_node = current_path[index+1]
+            if lightpath.channel != (len(self.switching_matrix[previous_node][next_node]) - 1):
+                self.switching_matrix[previous_node][next_node][lightpath.channel+1] = 0
+            if lightpath.channel != 0:
+                self.switching_matrix[previous_node][next_node][lightpath.channel-1] = 0
         if len(lightpath.path) != 1:  # if not at the last node of the path
             # save the next line label
             line_label = lightpath.path[0] + lightpath.path[1]
@@ -33,7 +43,7 @@ class Node:
         lightpath.update_node(self)
         if flag == 1:
             # calling the next line propagate method
-            self.successive[line_label].line_propagate(lightpath)
+            self.successive[line_label].line_propagate(lightpath, current_path)
         return lightpath
 
     def probe(self, signalinformation):
@@ -57,7 +67,7 @@ class Line:
         self.successive = dict()
         self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
 
-    def line_propagate(self, lightpath):
+    def line_propagate(self, lightpath, current_path):
         # save the successive node label
         self.state[lightpath.channel] = 0
         node_label = self.label[1]
@@ -66,7 +76,7 @@ class Line:
         # generate the latency acquired on this line
         self.latency_generation(lightpath)
         # call the successive node
-        self.successive[node_label].node_propagate(lightpath)
+        self.successive[node_label].node_propagate(lightpath, current_path)
         return lightpath
 
     def probe(self, signalinformation):
@@ -137,17 +147,6 @@ class Network:
                     if i == line_label[1]:  # while cycling on the nodes, if the line corresponds to the second
                         # element of the line, save the node in the successive of the current line
                         line_value.successive[i] = j
-        # initiate the switching matrix for all nodes
-        for node_label in self.nodes.keys():
-            temp_dict = dict()
-            for x in self.nodes[node_label].connected_nodes:
-                temp_dict[x] = dict()
-                for y in self.nodes[node_label].connected_nodes:
-                    if y == x:
-                        temp_dict[x][y] = np.zeros(10, dtype=int)
-                    else:
-                        temp_dict[x][y] = np.ones(10, dtype=int)
-            self.nodes[node_label].switching_matrix = temp_dict
         # build the weighted_lines data frame
         self.weighted_lines = utils.weighted_lines_build(self)
         # build the route_space data frame
@@ -224,9 +223,9 @@ class Network:
                         free_channel = cnt
         return best_latency, best_path, free_channel
 
-    def propagate(self, light_path):
+    def propagate(self, light_path, current_path):
         first_node = light_path.path[0]
-        self.nodes[first_node].node_propagate(light_path)  # calling the propagate method for the first node
+        self.nodes[first_node].node_propagate(light_path, current_path)  # calling the propagate method for the first node
         return light_path
 
     def probe(self, signal_information):
@@ -268,7 +267,7 @@ class Network:
             ax.txt = plt.text(xx - 0.13, yy - 0.13, s, fontsize=14)  # labels
             ax.add_patch(circ)
         # Save as png
-        plt.savefig(out_dir / 'wgraph.png')
+        plt.savefig(out_dir / '7_wgraph.png')
         # Show the image
         plt.show()
 
@@ -281,10 +280,15 @@ class Network:
                 vec = list(self.find_best_latency(inp, outp))
                 best_lat_path = vec[1]
                 channel = vec[2]
+                if best_lat_path != '':
+                    first_node = best_lat_path[0]
+                    i.bit_rate = self.calculate_bit_rate(best_lat_path, self.nodes[first_node].transceiver)
+                    if i.bit_rate == 0.0:
+                        best_lat_path = ''
                 if best_lat_path != '':  # if an available path was found, the string shouldn't be empty
                     current_path = list(best_lat_path)
                     signal = info.Lightpath(i.signal_power, best_lat_path, channel)  # initiate the Lightpath instance
-                    signal = (self.propagate(signal))  # propagate the signal info through the path
+                    signal = (self.propagate(signal, current_path))  # propagate the signal info through the path
                     utils.route_space_update(self, current_path)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
@@ -296,10 +300,15 @@ class Network:
                 vec = list(self.find_best_snr(inp, outp))
                 best_snr_path = vec[1]
                 channel = vec[2]
+                if best_snr_path != '':
+                    first_node = best_snr_path[0]
+                    i.bit_rate = self.calculate_bit_rate(best_snr_path, self.nodes[first_node].transceiver)
+                    if i.bit_rate == 0.0:
+                        best_snr_path = ''
                 if best_snr_path != '':  # if an available path was found, the string shouldn't be empty
                     current_path = list(best_snr_path)
                     signal = info.Lightpath(i.signal_power, best_snr_path, channel)  # initiate the Lightpath instance
-                    signal = (self.propagate(signal))  # propagate the signal info through the path
+                    signal = (self.propagate(signal, current_path))  # propagate the signal info through the path
                     utils.route_space_update(self, current_path)
                     i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
                     i.latency = signal.latency
@@ -311,7 +320,48 @@ class Network:
                 print('Please choose between strings "snr" and "latency".')
         for lbl in self.lines.keys():
             self.lines[lbl].state = [1] * 10  # at the end of the stream, the lines are again free
+        with open(file) as json_file:
+            nodes_from_file = json.load(json_file)
+        # rewrite the switching matrix
+        for i, j in nodes_from_file.items():
+            for k in j:
+                if k == 'switching_matrix':
+                    self.nodes[i].switching_matrix = nodes_from_file[i][k]
         return
+
+    def calculate_bit_rate(self, path, strategy):
+        path_string = ''
+        for k in range(0, len(path)):
+            path_string += path[k]
+            if k < len(path) - 1:
+                path_string += '->'
+        bit_rate = 0
+        sym_rate = 32e9
+        ber = 1e-3
+        noise_bw = 12.5e9
+        row_index = self.weighted_lines.index[self.weighted_lines['Path'] == path_string].tolist()
+        gsnr = self.weighted_lines.loc[row_index, 'SNR'].tolist()[0]
+        if strategy == 'fixed_rate':
+            condition = 2 * (erfcinv(2*ber) ** 2) * (sym_rate / noise_bw)
+            if gsnr >= condition:
+                bit_rate = 100.0
+            else:
+                bit_rate = 0.0
+        if strategy == 'flex_rate':
+            condition0 = 2 * (erfcinv(2 * ber) ** 2) * (sym_rate / noise_bw)
+            condition1 = 14 / 3 * (erfcinv(3 / 2 * ber) ** 2) * (sym_rate / noise_bw)
+            condition2 = 10 * (erfcinv(8 / 3 * ber) ** 2) * (sym_rate / noise_bw)
+            if gsnr < condition0:
+                bit_rate = 0.0
+            elif (gsnr >= condition0) & (gsnr < condition1):
+                bit_rate = 100.0
+            elif (gsnr >= condition1) & (gsnr < condition2):
+                bit_rate = 200.0
+            elif gsnr >= condition2:
+                bit_rate = 400.0
+        if strategy == 'shannon':
+            bit_rate = 2 * sym_rate * np.log2(1 + gsnr * sym_rate / noise_bw) / 1e9
+        return bit_rate
 
 
 class Connection:
@@ -321,3 +371,4 @@ class Connection:
         self.signal_power = signal_power
         self.snr = 0.0
         self.latency = 0.0
+        self.bit_rate = 0.0

@@ -50,8 +50,27 @@ def route_space_build(network):
         labels.append(i)
         occupancy.append(np.ones(10, dtype=int))
     df = pd.DataFrame(occupancy)
-    # inserting a column for the path labels
     df.insert(0, 'Path', labels, True)
+    for j in network.weighted_lines['Path']:
+        path_string = j
+        current_path = list(j.replace('->', ''))
+        elements = []
+        update_rs = np.ones(10, dtype=int)
+        # saving all nodes and all lines in the element vector
+        for i in range(0, len(current_path) - 1):
+            if i != 0:
+                elements.append(current_path[i])
+            elements.append(current_path[i] + current_path[i + 1])
+        # compute the update array
+        for i in range(0, len(elements)):
+            if len(elements[i]) == 1:  # it's a node
+                update_rs *= network.nodes[elements[i]].switching_matrix[elements[i - 1][0]][elements[i + 1][1]]
+            elif len(elements[i]) == 2:  # it's a line
+                update_rs *= network.lines[elements[i]].state
+        # modify the corresponding data frame row
+        row_index = df.index[df['Path'] == path_string].tolist()
+        col_index = df.columns != 'Path'
+        df.loc[row_index, col_index] = update_rs
     return df
 
 
