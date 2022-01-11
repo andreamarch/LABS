@@ -6,6 +6,8 @@ class SignalInformation:
         self.path = path
         self.noise_power = noise_power
         self.latency = latency
+        self.sym_rate = 32e9  # symbol rate in GHz
+        self.df = 50e9  # df in GHz
 
     def update_signal_pow(self, signal_power_increment):
         self.signal_power += signal_power_increment

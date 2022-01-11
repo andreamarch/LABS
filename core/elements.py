@@ -1,4 +1,6 @@
 import json
+import math
+
 import scipy.constants as consts
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,6 +68,13 @@ class Line:
         self.length = length
         self.successive = dict()
         self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
+        self.n_amplifiers = np.floor(length / 80e3)  # an amplifier every 80km
+        self.gain = 10 ** (16 / 10)  # 16dB in linear units
+        self.n_figure = 10 ** (3 / 10)  # 3dB in linear units
+        self.alpha = 0.2 / (20 * np.log10(np.exp(1)))
+        self.beta2 = 2.13e-26
+        self.gamma = 1.27e-3
+
 
     def line_propagate(self, lightpath, current_path):
         # save the successive node label
@@ -105,6 +114,19 @@ class Line:
         signal_information.update_noise_pow(new_noise)
         return signal_information
 
+    def ase_generation(self):
+        h = consts.h
+        f = 193.414e12
+        noise_bw = 12.5e9
+        ase = self.n_amplifiers * (h * f * noise_bw * self.n_figure * (1 - self.gain))
+        return ase
+
+    def nli_generation(self, lightpath):
+        l_eff = 1 / (2 * self.alpha)
+        noise_bw = 12.5e9
+        n_span = self.n_amplifiers-1
+        eta = 16 / (27 * math.pi) * np.log((math.pi ** 2) / 2 * (self.beta2 * (lightpath.sym_rate ** 2)) / self.alpha * (10 ** (2 * lightpath.sym_rate / lightpath.df))) * self.alpha / self.beta2 * ((self.gamma ** 2) * (l_eff ** 2)) / (lightpath.sym_rate ** 2)
+        nli = n_span * eta * (lightpath.signal_power ** 3) * noise_bw
 
 class Network:
     def __init__(self):
