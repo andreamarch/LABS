@@ -109,7 +109,9 @@ class Line:
 
     def noise_generation(self, signal_information):
         # compute noise
-        new_noise = 1e-9 * signal_information.signal_power * self.length
+        new_ase = self.ase_generation()
+        new_nli = self.nli_generation(signal_information)
+        new_noise = new_nli + new_ase
         # modify noise in the signal information
         signal_information.update_noise_pow(new_noise)
         return signal_information
@@ -118,15 +120,26 @@ class Line:
         h = consts.h
         f = 193.414e12
         noise_bw = 12.5e9
-        ase = self.n_amplifiers * (h * f * noise_bw * self.n_figure * (1 - self.gain))
+        ase = self.n_amplifiers * (h * f * noise_bw * self.n_figure * (self.gain-1))
         return ase
 
-    def nli_generation(self, lightpath):
-        l_eff = 1 / (2 * self.alpha)
+    def nli_generation(self, lightpath, power=1):
+        if power == 1:  # if nothing was passed as power, set to the lightpath
+            power = lightpath.signal_power
+        l_eff = 1 / (2 * self.alpha)  # [km]
+        alpha_m = 1 / (1 / self.alpha * 1e3)
         noise_bw = 12.5e9
         n_span = self.n_amplifiers-1
-        eta = 16 / (27 * math.pi) * np.log((math.pi ** 2) / 2 * (self.beta2 * (lightpath.sym_rate ** 2)) / self.alpha * (10 ** (2 * lightpath.sym_rate / lightpath.df))) * self.alpha / self.beta2 * ((self.gamma ** 2) * (l_eff ** 2)) / (lightpath.sym_rate ** 2)
+        eta = 16 / (27 * math.pi) * np.log((math.pi ** 2) / 2 * (self.beta2 * (lightpath.sym_rate ** 2)) / alpha_m * (10 ** (2 * lightpath.sym_rate / lightpath.df))) * alpha_m / self.beta2 * ((self.gamma ** 2) * ((l_eff * 1e3) ** 2)) / (lightpath.sym_rate ** 3)
         nli = n_span * eta * (lightpath.signal_power ** 3) * noise_bw
+        return nli
+
+    def optimized_lauch_power(self, lightpath):
+        noise_bw = 12.5e9
+        h = consts.h
+        f = 193.414e12
+        # idea: usare un vettore di potenze per trovare quella corrispondente all'ottimo
+
 
 class Network:
     def __init__(self):
@@ -158,6 +171,7 @@ class Network:
                 line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
                 # save the length as attribute of the instance of the line
                 self.lines[line_label] = Line(line_label, line_length)
+
 
     def connect(self):
         for node_label, node_value in self.nodes.items():
@@ -351,14 +365,15 @@ class Network:
                     self.nodes[i].switching_matrix = nodes_from_file[i][k]
         return
 
-    def calculate_bit_rate(self, path, strategy):
+    def calculate_bit_rate(self, lightpath, strategy):
         path_string = ''
+        path = lightpath.path
         for k in range(0, len(path)):
             path_string += path[k]
             if k < len(path) - 1:
                 path_string += '->'
         bit_rate = 0
-        sym_rate = 32e9
+        sym_rate = lightpath.sym_rate
         ber = 1e-3
         noise_bw = 12.5e9
         row_index = self.weighted_lines.index[self.weighted_lines['Path'] == path_string].tolist()
