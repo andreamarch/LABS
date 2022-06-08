@@ -77,8 +77,8 @@ def route_space_build(network):
 # function for updating the route space dataframe after the deployment of a connection
 def route_space_update(network, path):
     line_string = ''
-    for index in range(0, len(path)-1):  # loop on all the lines of the path
-        line_string = path[index] + '->' + path[index+1]
+    for index in range(0, len(path) - 1):  # loop on all the lines of the path
+        line_string = path[index] + '->' + path[index + 1]
         for row in network.route_space.itertuples():  # loop on all possible paths
             if row.Path.find(line_string) != -1:
                 # if it's not found the find gives back -1, while it gives back the index at which it was found (not -1)
@@ -102,3 +102,9 @@ def route_space_update(network, path):
                 col_index = network.route_space.columns != 'Path'
                 network.route_space.loc[row_index, col_index] = update_rs
     return
+
+
+# Function for computing the area of the network
+def PolyArea(x, y):
+    area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+    return area

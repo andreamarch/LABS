@@ -9,7 +9,8 @@ import core.info as info
 import core.utils as utils
 import pandas as pd
 from scipy.special import erfcinv
-
+from core.parameters import *
+from scipy.spatial import ConvexHull
 
 # import/export paths
 root = Path(__file__).parent.parent
@@ -31,12 +32,12 @@ class Node:
         current_node = lightpath.path[0]
         index = current_path.index(current_node)
         if (index != 0) & (index != (len(current_path) - 1)):
-            previous_node = current_path[index-1]
-            next_node = current_path[index+1]
+            previous_node = current_path[index - 1]
+            next_node = current_path[index + 1]
             if lightpath.channel != (len(self.switching_matrix[previous_node][next_node]) - 1):
-                self.switching_matrix[previous_node][next_node][lightpath.channel+1] = 0
+                self.switching_matrix[previous_node][next_node][lightpath.channel + 1] = 0
             if lightpath.channel != 0:
-                self.switching_matrix[previous_node][next_node][lightpath.channel-1] = 0
+                self.switching_matrix[previous_node][next_node][lightpath.channel - 1] = 0
         if len(lightpath.path) != 1:  # if not at the last node of the path
             # save the next line label
             line_label = lightpath.path[0] + lightpath.path[1]
@@ -68,13 +69,11 @@ class Line:
         self.length = length
         self.successive = dict()
         self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
-        self.n_amplifiers = np.floor(length / 80e3)  # an amplifier every 80km
-        self.gain = 10 ** (16 / 10)  # 16dB in linear units
-        self.n_figure = 10 ** (3 / 10)  # 3dB in linear units
-        self.alpha = 0.2 / (20 * np.log10(np.exp(1)))
-        self.beta2 = 2.13e-26
-        self.gamma = 1.27e-3
-
+        self.n_amplifiers = np.floor(length / 80e3)  # number of amplifiers, an amplifier every 80km
+        self.eta = 16 / (27 * math.pi) * np.log(
+            (math.pi ** 2) / 2 * (beta2 * (sym_rate ** 2)) / alpha_m * (
+                    10 ** (2 * sym_rate / df))) * alpha_m / beta2 * ((gamma ** 2) * ((l_eff * 1e3) ** 2)) / (
+                           sym_rate ** 3)  # eta, formula from 08_NLI.pdf, slide 38
 
     def line_propagate(self, lightpath, current_path):
         # save the successive node label
@@ -120,25 +119,21 @@ class Line:
         h = consts.h
         f = 193.414e12
         noise_bw = 12.5e9
-        ase = self.n_amplifiers * (h * f * noise_bw * self.n_figure * (self.gain-1))
+        ase = self.n_amplifiers * (h * f * noise_bw * n_figure * (gain - 1))
         return ase
 
     def nli_generation(self, lightpath, power=1):
-        if power == 1:  # if nothing was passed as power, set to the lightpath
+        if power == 1:  # if nothing was passed as power, set to the lightpath power
             power = lightpath.signal_power
-        l_eff = 1 / (2 * self.alpha)  # [km]
-        alpha_m = 1 / (1 / self.alpha * 1e3)
-        noise_bw = 12.5e9
-        n_span = self.n_amplifiers-1
-        eta = 16 / (27 * math.pi) * np.log((math.pi ** 2) / 2 * (self.beta2 * (lightpath.sym_rate ** 2)) / alpha_m * (10 ** (2 * lightpath.sym_rate / lightpath.df))) * alpha_m / self.beta2 * ((self.gamma ** 2) * ((l_eff * 1e3) ** 2)) / (lightpath.sym_rate ** 3)
-        nli = n_span * eta * (lightpath.signal_power ** 3) * noise_bw
+        noise_bw = 12.5e9  # [Hz]
+        n_span = self.n_amplifiers - 1  # number of fiber spans
+        nli = n_span * self.eta * (power ** 3) * noise_bw
         return nli
 
     def optimized_lauch_power(self, lightpath):
-        noise_bw = 12.5e9
+        noise_bw = 12.5e9  # [Hz]
         h = consts.h
-        f = 193.414e12
-        # idea: usare un vettore di potenze per trovare quella corrispondente all'ottimo
+        f = 193.414e12  # [Hz]
 
 
 class Network:
@@ -171,7 +166,6 @@ class Network:
                 line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
                 # save the length as attribute of the instance of the line
                 self.lines[line_label] = Line(line_label, line_length)
-
 
     def connect(self):
         for node_label, node_value in self.nodes.items():
@@ -261,7 +255,8 @@ class Network:
 
     def propagate(self, light_path, current_path):
         first_node = light_path.path[0]
-        self.nodes[first_node].node_propagate(light_path, current_path)  # calling the propagate method for the first node
+        self.nodes[first_node].node_propagate(light_path,
+                                              current_path)  # calling the propagate method for the first node
         return light_path
 
     def probe(self, signal_information):
@@ -277,16 +272,21 @@ class Network:
             # saving labels in vector
             label.append(i)
             # saving positions in vector
-            xi = float(j.position[0]) * 1e-5
+            xi = float(j.position[0]) * 1e-3
             x.append(xi)
-            yi = float(j.position[1]) * 1e-5
+            yi = float(j.position[1]) * 1e-3
             y.append(yi)
+        coord_array = np.transpose(np.array([x, y]))
+        hull = ConvexHull(coord_array)  # Get the boundary coordinates
+        network_area = utils.PolyArea(coord_array[hull.vertices, 0], coord_array[hull.vertices, 1])  # compute area
+        print('The area of the network is around', '{:.2f}'.format(network_area), 'km^2')
+
         fig, ax = plt.subplots(1)
         ax.set_aspect('equal')
-        plt.axis([-5, 5, -5, 5.5])
+        plt.axis([-5e2, 5e2, -5e2, 5.5e2])
         plt.title('Weighted graph of the Network')
-        plt.xlabel('x, 100*km')
-        plt.ylabel('y, 100*km')
+        plt.xlabel('x, km')
+        plt.ylabel('y, km')
         for i in label:
             indx = label.index(i)
             for j in self.nodes[i].connected_nodes:
@@ -297,7 +297,7 @@ class Network:
                         yy = [y[indx2], y[indx]]
                         plt.plot(xx, yy, 'k-.', linewidth=0.5)  # lines
         for xx, yy, s in zip(x, y, label):
-            circ = plt.Circle((xx, yy), radius=0.5)  # circles
+            circ = plt.Circle((xx, yy), radius=0.5e2)  # circles
             circ.set_facecolor('c')
             circ.set_edgecolor('k')
             ax.txt = plt.text(xx - 0.13, yy - 0.13, s, fontsize=14)  # labels
@@ -377,9 +377,10 @@ class Network:
         ber = 1e-3
         noise_bw = 12.5e9
         row_index = self.weighted_lines.index[self.weighted_lines['Path'] == path_string].tolist()
-        gsnr = self.weighted_lines.loc[row_index, 'SNR'].tolist()[0]
+        gsnr = self.weighted_lines.loc[row_index, 'SNR'].tolist()[0]  # in dB
+        gsnr = 10 ** (gsnr / 10)  # in linear scale
         if strategy == 'fixed_rate':
-            condition = 2 * (erfcinv(2*ber) ** 2) * (sym_rate / noise_bw)
+            condition = 2 * (erfcinv(2 * ber) ** 2) * (sym_rate / noise_bw)
             if gsnr >= condition:
                 bit_rate = 100.0
             else:

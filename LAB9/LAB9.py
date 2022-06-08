@@ -9,3 +9,4 @@ out_directory = root / 'results'
 
 network = el.Network()
 network.connect()
+network.draw_network()
