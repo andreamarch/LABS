@@ -55,6 +55,7 @@ class Node:
             # save the next line label
             line_label = signalinformation.path[0] + signalinformation.path[1]
             flag = 1
+            signalinformation.signal_power = self.successive[line_label].optimized_launch_power()
         # update the path deleting the current node
         signalinformation.update_node(self)
         if flag == 1:
@@ -130,12 +131,12 @@ class Line:
         nli = n_span * self.eta * (power ** 3) * noise_bw
         return nli
 
-    def optimized_lauch_power(self, lightpath):
-        noise_bw = 12.5e9  # [Hz]
-        h = consts.h
-        f = 193.414e12  # [Hz]
-
-
+    def optimized_launch_power(self):
+        Loss_db = alpha * span_length
+        p_base = h * noise_bw * f0
+        tmp_arg = n_figure * (10 ** -Loss_db / 10) * p_base / (2 * noise_bw * self.eta)
+        optimum_power = tmp_arg ** (1/3)
+        return optimum_power
 class Network:
     def __init__(self):
         self.weighted_lines = []

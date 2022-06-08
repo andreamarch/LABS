@@ -1,7 +1,7 @@
 #  DYNAMIC ELEMENTS
 
 class SignalInformation:
-    def __init__(self, signal_power, path, noise_power=0.0, latency=0.0):
+    def __init__(self, path, signal_power=1.0, noise_power=0.0, latency=0.0):
         self.signal_power = float(signal_power)
         self.path = path
         self.noise_power = noise_power

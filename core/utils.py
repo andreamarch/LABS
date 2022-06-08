@@ -29,7 +29,7 @@ def weighted_lines_build(network, power=1e-3):
             path_vector.append(strng)
             from_to.append(paths[i][j][0] + '-' + paths[i][j][len(paths[i][j]) - 1])
             current_path = list(paths[i][j])
-            signal_info = info.SignalInformation(power, current_path)
+            signal_info = info.SignalInformation(current_path)
             network.probe(signal_info)
             signal_pow.append(signal_info.signal_power)
             noise.append(signal_info.noise_power)
