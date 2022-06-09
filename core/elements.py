@@ -70,7 +70,7 @@ class Line:
         self.length = length
         self.successive = dict()
         self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
-        self.n_amplifiers = np.floor(length / 80e3)  # number of amplifiers, an amplifier every 80km
+        self.n_amplifiers = int(np.ceil(length / span_length / 1e3) + 1)  # number of amplifiers, 1 amplifier every 80km
         self.eta = 16 / (27 * math.pi) * np.log(
             (math.pi ** 2) / 2 * (beta2 * (sym_rate ** 2)) / alpha_m * (
                     10 ** (2 * sym_rate / df))) * alpha_m / beta2 * ((gamma ** 2) * ((l_eff * 1e3) ** 2)) / (
@@ -110,31 +110,27 @@ class Line:
     def noise_generation(self, signal_information):
         # compute noise
         new_ase = self.ase_generation()
-        new_nli = self.nli_generation(signal_information)
+        new_nli = self.nli_generation(signal_information, signal_information.signal_power)
         new_noise = new_nli + new_ase
         # modify noise in the signal information
         signal_information.update_noise_pow(new_noise)
         return signal_information
 
     def ase_generation(self):
-        h = consts.h
-        f = 193.414e12
-        noise_bw = 12.5e9
-        ase = self.n_amplifiers * (h * f * noise_bw * n_figure * (gain - 1))
+        ase = self.n_amplifiers * (h * f0 * noise_bw * n_figure * (gain - 1))
         return ase
 
     def nli_generation(self, lightpath, power=1):
         if power == 1:  # if nothing was passed as power, set to the lightpath power
             power = lightpath.signal_power
-        noise_bw = 12.5e9  # [Hz]
         n_span = self.n_amplifiers - 1  # number of fiber spans
         nli = n_span * self.eta * (power ** 3) * noise_bw
         return nli
 
     def optimized_launch_power(self):
-        Loss_db = alpha * span_length
+        Loss_db = alpha_db * span_length
         p_base = h * noise_bw * f0
-        tmp_arg = n_figure * (10 ** -Loss_db / 10) * p_base / (2 * noise_bw * self.eta)
+        tmp_arg = n_figure * 10 ** (Loss_db / 10) * p_base / (2 * noise_bw * self.eta)
         optimum_power = tmp_arg ** (1/3)
         return optimum_power
 class Network:
@@ -374,22 +370,21 @@ class Network:
             if k < len(path) - 1:
                 path_string += '->'
         bit_rate = 0
-        sym_rate = lightpath.sym_rate
+        symb_rate = lightpath.sym_rate
         ber = 1e-3
-        noise_bw = 12.5e9
         row_index = self.weighted_lines.index[self.weighted_lines['Path'] == path_string].tolist()
         gsnr = self.weighted_lines.loc[row_index, 'SNR'].tolist()[0]  # in dB
         gsnr = 10 ** (gsnr / 10)  # in linear scale
         if strategy == 'fixed_rate':
-            condition = 2 * (erfcinv(2 * ber) ** 2) * (sym_rate / noise_bw)
+            condition = 2 * (erfcinv(2 * ber) ** 2) * (symb_rate / noise_bw)
             if gsnr >= condition:
-                bit_rate = 100.0
+                bit_rate = 100.0 #
             else:
                 bit_rate = 0.0
         if strategy == 'flex_rate':
-            condition0 = 2 * (erfcinv(2 * ber) ** 2) * (sym_rate / noise_bw)
-            condition1 = 14 / 3 * (erfcinv(3 / 2 * ber) ** 2) * (sym_rate / noise_bw)
-            condition2 = 10 * (erfcinv(8 / 3 * ber) ** 2) * (sym_rate / noise_bw)
+            condition0 = 2 * (erfcinv(2 * ber) ** 2) * (symb_rate / noise_bw)
+            condition1 = 14 / 3 * (erfcinv(3 / 2 * ber) ** 2) * (symb_rate / noise_bw)
+            condition2 = 10 * (erfcinv(8 / 3 * ber) ** 2) * (symb_rate / noise_bw)
             if gsnr < condition0:
                 bit_rate = 0.0
             elif (gsnr >= condition0) & (gsnr < condition1):
@@ -399,7 +394,7 @@ class Network:
             elif gsnr >= condition2:
                 bit_rate = 400.0
         if strategy == 'shannon':
-            bit_rate = 2 * sym_rate * np.log2(1 + gsnr * sym_rate / noise_bw) / 1e9
+            bit_rate = 2 * symb_rate * np.log2(1 + gsnr * symb_rate / noise_bw) / 1e9
         return bit_rate
 
 
