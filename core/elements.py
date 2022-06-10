@@ -14,7 +14,6 @@ from scipy.spatial import ConvexHull
 
 # import/export paths
 root = Path(__file__).parent.parent
-file = root / 'resources' / 'nodes_not_full.json'
 out_dir = root / 'results'
 
 
@@ -22,7 +21,7 @@ out_dir = root / 'results'
 class Node:
     def __init__(self, label, node_dict):
         self.label = label
-        self.transceiver = 'fixed_rate'
+        self.transceiver = strategy_bit_rate
         for el in node_dict:
             setattr(self, el, node_dict[el])
         self.successive = dict()
@@ -42,6 +41,7 @@ class Node:
             # save the next line label
             line_label = lightpath.path[0] + lightpath.path[1]
             flag = 1
+            lightpath.signal_power = self.successive[line_label].optimized_launch_power()
         # update the path deleting the current node
         lightpath.update_node(self)
         if flag == 1:
@@ -134,14 +134,15 @@ class Line:
         optimum_power = tmp_arg ** (1/3)
         return optimum_power
 class Network:
-    def __init__(self):
+    def __init__(self, network_file):
         self.weighted_lines = []
         self.route_space = []
         self.nodes = dict()
         self.lines = dict()
         self.graph = dict()
+        self.network_file = network_file
         # open the json file
-        with open(file) as json_file:
+        with open(self.network_file) as json_file:
             nodes = json.load(json_file)
         # initiate the Node instances from the json file
         for i, j in nodes.items():
@@ -217,7 +218,7 @@ class Network:
                             flag = True
                             break
                     if flag:  # if one of the lines was occupied, the path and latency won't be saved
-                        best_snr = float(row.snr)
+                        best_snr = float(row.SNR)
                         best_path = path
                         free_channel = cnt
         return best_snr, best_path, free_channel
@@ -275,7 +276,7 @@ class Network:
             y.append(yi)
         coord_array = np.transpose(np.array([x, y]))
         hull = ConvexHull(coord_array)  # Get the boundary coordinates
-        network_area = utils.PolyArea(coord_array[hull.vertices, 0], coord_array[hull.vertices, 1])  # compute area
+        network_area = utils.polygon_area(coord_array[hull.vertices, 0], coord_array[hull.vertices, 1])  # compute area
         print('The area of the network is around', '{:.2f}'.format(network_area), 'km^2')
 
         fig, ax = plt.subplots(1)
@@ -306,61 +307,75 @@ class Network:
 
     def stream(self, connection_list, lat_or_snr='latency'):
         lat_or_snr = lat_or_snr.lower()
-        for i in connection_list:
-            inp = i.input
-            outp = i.output
+        count_block_events = 0
+        block_connection = False
+        for i in range(0, len(connection_list)):
+            current_connection = connection_list[i]
+            inp = current_connection.input
+            outp = current_connection.output
             if lat_or_snr == 'latency':
                 vec = list(self.find_best_latency(inp, outp))
                 best_lat_path = vec[1]
                 channel = vec[2]
-                if best_lat_path != '':
+                if best_lat_path == '':
+                    block_connection = True
+                elif best_lat_path != '':  # if an available path was found, the string shouldn't be empty
                     first_node = best_lat_path[0]
-                    i.bit_rate = self.calculate_bit_rate(best_lat_path, self.nodes[first_node].transceiver)
-                    if i.bit_rate == 0.0:
-                        best_lat_path = ''
-                if best_lat_path != '':  # if an available path was found, the string shouldn't be empty
                     current_path = list(best_lat_path)
-                    signal = info.Lightpath(i.signal_power, best_lat_path, channel)  # initiate the Lightpath instance
+                    signal = info.Lightpath(best_lat_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal, current_path))  # propagate the signal info through the path
+                    signal.path = current_path  # re-instantiate the signal path because it was deleted by propagate
+                    current_connection.bit_rate = self.calculate_bit_rate(signal, self.nodes[first_node].transceiver)
+                    if current_connection.bit_rate == 0.0:
+                        block_connection = True
                     utils.route_space_update(self, current_path)
-                    i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
-                    i.latency = signal.latency
-                else:  # no lines available between these nodes
-                    i.snr = 0
-                    i.latency = np.NaN
-                    print('Connection blocked')
+                    current_connection.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    current_connection.latency = signal.latency
+                if block_connection:  # no lines available between these nodes
+                    block_connection = False
+                    current_connection.snr = 0
+                    current_connection.latency = np.NaN
+                    current_connection.channel = None
+                    current_connection.bit_rate = np.NaN
+                    count_block_events += 1
             elif lat_or_snr == 'snr':
                 vec = list(self.find_best_snr(inp, outp))
                 best_snr_path = vec[1]
                 channel = vec[2]
-                if best_snr_path != '':
-                    first_node = best_snr_path[0]
-                    i.bit_rate = self.calculate_bit_rate(best_snr_path, self.nodes[first_node].transceiver)
-                    if i.bit_rate == 0.0:
-                        best_snr_path = ''
+                if best_snr_path == '':
+                    block_connection = True
                 if best_snr_path != '':  # if an available path was found, the string shouldn't be empty
+                    first_node = best_snr_path[0]
                     current_path = list(best_snr_path)
-                    signal = info.Lightpath(i.signal_power, best_snr_path, channel)  # initiate the Lightpath instance
+                    signal = info.Lightpath(best_snr_path, channel)  # initiate the Lightpath instance
                     signal = (self.propagate(signal, current_path))  # propagate the signal info through the path
+                    signal.path = current_path  # re-instantiate the signal path because it was deleted by propagate
+                    current_connection.bit_rate = self.calculate_bit_rate(signal, self.nodes[first_node].transceiver)
+                    if current_connection.bit_rate == 0.0:
+                        block_connection = True
                     utils.route_space_update(self, current_path)
-                    i.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
-                    i.latency = signal.latency
-                else:  # no lines available between these nodes
-                    i.snr = 0
-                    i.latency = np.NaN
-                    print('Connection blocked')
+                    current_connection.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    current_connection.latency = signal.latency
+                if block_connection:  # no lines available between these nodes
+                    block_connection = False
+                    current_connection.snr = 0
+                    current_connection.latency = np.NaN
+                    current_connection.channel = None
+                    current_connection.bit_rate = np.NaN
+                    count_block_events += 1
             else:  # wrong string was passed
                 print('Please choose between strings "snr" and "latency".')
-        for lbl in self.lines.keys():
-            self.lines[lbl].state = [1] * 10  # at the end of the stream, the lines are again free
-        with open(file) as json_file:
-            nodes_from_file = json.load(json_file)
-        # rewrite the switching matrix
-        for i, j in nodes_from_file.items():
-            for k in j:
-                if k == 'switching_matrix':
-                    self.nodes[i].switching_matrix = nodes_from_file[i][k]
-        return
+        print('There were', count_block_events, 'blocking events out of', number_of_connections, 'connections')
+#        for lbl in self.lines.keys():
+#            self.lines[lbl].state = [1] * 10  # at the end of the stream, the lines are again free
+#        with open(file) as json_file:
+#            nodes_from_file = json.load(json_file)
+#        # rewrite the switching matrix
+#        for i, j in nodes_from_file.items():
+#            for k in j:
+#                if k == 'switching_matrix':
+#                    self.nodes[i].switching_matrix = nodes_from_file[i][k]
+        return connection_list
 
     def calculate_bit_rate(self, lightpath, strategy):
         path_string = ''
@@ -399,10 +414,10 @@ class Network:
 
 
 class Connection:
-    def __init__(self, inp, output, signal_power):
+    def __init__(self, inp, output, signal_power=None):
         self.input = inp.upper()
         self.output = output.upper()
-        self.signal_power = signal_power
+        self.signal_power = signal_power if signal_power else 0
         self.snr = 0.0
         self.latency = 0.0
         self.bit_rate = 0.0

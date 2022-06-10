@@ -16,3 +16,6 @@ df = 50e9  # [Hz]
 noise_bw = 12.5e9  # [Hz]
 h = consts.h    # Plack's constant
 f0 = 193.414e12  # [Hz]
+
+strategy_bit_rate = 'fixed_rate'
+number_of_connections = 100

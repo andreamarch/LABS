@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 import core.info as info
+import random
+import core.elements as el
+from core.parameters import *
+import matplotlib.pyplot as plt
 
 
 # function for constructing the data frame
@@ -105,6 +109,46 @@ def route_space_update(network, path):
 
 
 # Function for computing the area of the network
-def PolyArea(x, y):
+def polygon_area(x, y):
     area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
     return area
+
+
+# Function for generating the random stream of connections
+def generate_random_connections(network):
+    nodes = list(network.nodes.keys())
+    connections = []
+    for i in range(0, number_of_connections):
+        new_nodes = list(nodes)
+        strt = random.choice(new_nodes)
+        new_nodes.remove(strt)
+        end = random.choice(new_nodes)
+        connections.append(el.Connection(strt, end))
+    return connections
+
+
+# Function for computing the capacity and average bit rate
+def compute_network_capacity_and_avg_bit_rate(connections):
+    total_capacity = np.nansum([connections[k].bit_rate for k in range(0, len(connections))])
+    avg_bit_rate = total_capacity / len(connections)
+    return total_capacity, avg_bit_rate
+
+
+# Function for automatic plots
+def plot_histogram(figure_num, list_data, nbins, edge_color, color, label, title='', ylabel='', xlabel='',
+                   bbox_to_anchor=None, loc=None, bottom=None, nan_display=False):
+    if nan_display:
+        list_data = list(np.nan_to_num(list_data))  # replace NaN with 0
+
+    fig, ax = plt.subplots()
+    fig.subplots_adjust(bottom=bottom)
+    ax.set_axisbelow(True)
+    plt.grid()
+    plt.hist(list_data, bins=nbins, edgecolor=edge_color, color=color, label=label)
+    plt.title(title)
+    plt.legend(bbox_to_anchor=bbox_to_anchor, loc=loc, framealpha=1)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    figure = plt.gcf()  # get current figure
+    figure.set_size_inches(8, 6)
+

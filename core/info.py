@@ -25,6 +25,6 @@ class SignalInformation:
 
 
 class Lightpath(SignalInformation):
-    def __init__(self, signal_power, path, channel, noise_power=0.0, latency=0.0):
-        super().__init__(signal_power, path, noise_power=0.0, latency=0.0)
+    def __init__(self, path, channel, noise_power=0.0, latency=0.0):
+        super().__init__(path, noise_power=0.0, latency=0.0)
         self.channel = channel
