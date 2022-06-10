@@ -6,7 +6,7 @@ import core.utils as utls
 import time
 
 # import/export paths
-root = Path(__file__).parent.parent
+root = Path(__file__).parent.parent.parent
 in_directory = root / 'resources'
 out_directory = root / 'results'
 

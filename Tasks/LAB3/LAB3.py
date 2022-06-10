@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
 
-root = Path(__file__).parent.parent
+root = Path(__file__).parent.parent.parent
 file = root / 'resources' / 'nodes.json'
 
 # ex 1

@@ -3,7 +3,7 @@ import random
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-root = Path(__file__).parent.parent
+root = Path(__file__).parent.parent.parent
 in_directory = root / 'resources'
 out_directory = root / 'results'
 
@@ -32,13 +32,13 @@ plt.title('SNR distribution')
 plt.hist(snr, bins=12)
 plt.xlabel('SNR, dB')
 plt.ylabel('Number of occurrences')
-# plt.savefig(out_directory / '5_snr_hist.png')
+plt.savefig(out_directory / '5_snr_hist.png')
 
 plt.figure(2)
 plt.title('Latency distribution')
 plt.hist(lat, bins=10)
 plt.xlabel('Latency, s')
 plt.ylabel('Number of occurrences')
-# plt.savefig(out_directory / '5_lat_hist.png')
+plt.savefig(out_directory / '5_lat_hist.png')
 
 plt.show()

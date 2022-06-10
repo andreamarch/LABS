@@ -3,11 +3,44 @@
   <component name="ChangeListManager">
     <list default="true" id="0b686254-934d-46a1-8fb0-ca3ed4ed6641" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LAB9/LAB9.py" beforeDir="false" afterPath="$PROJECT_DIR$/LAB9/LAB9.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/elements.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/elements.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/info.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/parameters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/LAB1_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/LAB1_1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/LAB1_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/LAB1_2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/LAB1_3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/LAB1_3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/LAB2_4.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/LAB2_4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/LAB2_5.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/LAB2_5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/HEAD" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/HEAD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/config" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/description" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/description" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/applypatch-msg.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/applypatch-msg.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/commit-msg.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/commit-msg.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/fsmonitor-watchman.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/fsmonitor-watchman.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/post-update.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/post-update.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-applypatch.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-applypatch.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-commit.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-commit.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-merge-commit.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-merge-commit.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-push.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-push.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-rebase.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-rebase.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/pre-receive.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/pre-receive.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/prepare-commit-msg.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/prepare-commit-msg.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/hooks/update.sample" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/hooks/update.sample" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/main/info/exclude" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/main/info/exclude" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/sales_data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/sales_data.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB1&amp;2/states.json" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB1&amp;2/states.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/.idea/LAB3.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/.idea/LAB3.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB3/LAB3.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB3/LAB3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB4/LAB4.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB4/LAB4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB5/LAB5.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB5/LAB5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB6/LAB6.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB6/LAB6.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB7/LAB7.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB7/LAB7.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB8/LAB8.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB8/LAB8.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAB9/LAB9.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB9/LAB9.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/9d5_br_fixed.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/9d5_lat_fixed.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/9d5_snr_fixed.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,31 +99,11 @@
       <recent name="$PROJECT_DIR$/LAB4" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Tasks" />
       <recent name="$PROJECT_DIR$/LAB4" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.LAB9">
-    <configuration name="LAB6" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="LABS" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/LAB6" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LAB6/LAB6.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.LAB9 (1)">
     <configuration name="LAB7" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="LABS" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -125,6 +138,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LAB8/LAB8.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="LAB9 (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LABS" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Tasks/LAB9" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Tasks/LAB9/LAB9.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -177,11 +211,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.LAB9 (1)" />
         <item itemvalue="Python.LAB9" />
         <item itemvalue="Python.prova" />
         <item itemvalue="Python.LAB8" />
         <item itemvalue="Python.LAB7" />
-        <item itemvalue="Python.LAB6" />
       </list>
     </recent_temporary>
   </component>
@@ -227,27 +261,27 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LAB4/LAB4.py</url>
+          <url>file://$PROJECT_DIR$/Tasks/LAB4/LAB4.py</url>
           <line>21</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LAB5/LAB5.py</url>
+          <url>file://$PROJECT_DIR$/Tasks/LAB5/LAB5.py</url>
           <line>21</line>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LAB6/LAB6.py</url>
+          <url>file://$PROJECT_DIR$/Tasks/LAB6/LAB6.py</url>
           <line>14</line>
           <option name="timeStamp" value="23" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LAB7/LAB7.py</url>
+          <url>file://$PROJECT_DIR$/Tasks/LAB7/LAB7.py</url>
           <line>20</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/LAB8/LAB8.py</url>
+          <url>file://$PROJECT_DIR$/Tasks/LAB8/LAB8.py</url>
           <line>9</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
