@@ -71,6 +71,7 @@ class Line:
         self.successive = dict()
         self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
         self.n_amplifiers = int(np.ceil(length / span_length / 1e3) + 1)  # number of amplifiers, 1 amplifier every 80km
+        self.n_span = self.n_amplifiers - 1  # number of fiber spans
         self.eta = 16 / (27 * math.pi) * np.log(
             (math.pi ** 2) / 2 * (beta2 * (sym_rate ** 2)) / alpha_m * (
                     10 ** (2 * sym_rate / df))) * alpha_m / beta2 * ((gamma ** 2) * ((l_eff * 1e3) ** 2)) / (
@@ -80,8 +81,12 @@ class Line:
         # save the successive node label
         self.state[lightpath.channel] = 0
         node_label = self.label[1]
+        # compute the average power on the current path
+        lightpath.update_signal_pow_average()
         # generate the noise acquired on this line
-        self.noise_generation(lightpath)
+        new_noise = self.noise_generation(lightpath)
+        # compute new ISNR and update
+        self.isnr_generation(lightpath, new_noise)
         # generate the latency acquired on this line
         self.latency_generation(lightpath)
         # call the successive node
@@ -91,8 +96,12 @@ class Line:
     def probe(self, signalinformation):
         # save the successive node label
         node_label = self.label[1]
+        # compute the average power on the current path
+        signalinformation.update_signal_pow_average()
         # generate the noise acquired on this line
-        self.noise_generation(signalinformation)
+        new_noise = self.noise_generation(signalinformation)
+        # compute new ISNR and update
+        self.isnr_generation(signalinformation, new_noise)
         # generate the latency acquired on this line
         self.latency_generation(signalinformation)
         # call the successive node probe
@@ -114,7 +123,12 @@ class Line:
         new_noise = new_nli + new_ase
         # modify noise in the signal information
         signal_information.update_noise_pow(new_noise)
-        return signal_information
+        return new_noise
+
+    def isnr_generation(self, signal_information, noise):
+        new_isnr = noise / signal_information.signal_power
+        signal_information.update_isnr(new_isnr)
+        return
 
     def ase_generation(self):
         ase = self.n_amplifiers * (h * f0 * noise_bw * n_figure * (gain - 1))
@@ -123,16 +137,16 @@ class Line:
     def nli_generation(self, lightpath, power=1):
         if power == 1:  # if nothing was passed as power, set to the lightpath power
             power = lightpath.signal_power
-        n_span = self.n_amplifiers - 1  # number of fiber spans
-        nli = n_span * self.eta * (power ** 3) * noise_bw
+        nli = self.n_span * self.eta * (power ** 3) * noise_bw
         return nli
 
     def optimized_launch_power(self):
-        Loss_db = alpha_db * span_length
-        p_base = h * noise_bw * f0
-        tmp_arg = n_figure * 10 ** (Loss_db / 10) * p_base / (2 * noise_bw * self.eta)
+        p_ase = self.ase_generation()
+        tmp_arg = p_ase / (2 * self.eta * self.n_span * noise_bw)
         optimum_power = tmp_arg ** (1/3)
         return optimum_power
+
+
 class Network:
     def __init__(self, network_file):
         self.weighted_lines = []
@@ -253,12 +267,14 @@ class Network:
 
     def propagate(self, light_path, current_path):
         first_node = light_path.path[0]
+        light_path.path_length = len(light_path.path) - 1
         self.nodes[first_node].node_propagate(light_path,
                                               current_path)  # calling the propagate method for the first node
         return light_path
 
     def probe(self, signal_information):
         first_node = signal_information.path[0]
+        signal_information.path_length = len(signal_information.path) - 1
         self.nodes[first_node].probe(signal_information)  # calling the probe method for the first node
         return signal_information
 
@@ -329,7 +345,7 @@ class Network:
                     if current_connection.bit_rate == 0.0:
                         block_connection = True
                     utils.route_space_update(self, current_path)
-                    current_connection.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    current_connection.snr = 10 * np.log10(np.power(signal.isnr, -1))
                     current_connection.latency = signal.latency
                 if block_connection:  # no lines available between these nodes
                     block_connection = False
@@ -354,7 +370,7 @@ class Network:
                     if current_connection.bit_rate == 0.0:
                         block_connection = True
                     utils.route_space_update(self, current_path)
-                    current_connection.snr = 10 * np.log10(signal.signal_power / signal.noise_power)
+                    current_connection.snr = 10 * np.log10(np.power(signal.isnr, -1))
                     current_connection.latency = signal.latency
                 if block_connection:  # no lines available between these nodes
                     block_connection = False
@@ -393,7 +409,7 @@ class Network:
         if strategy == 'fixed_rate':
             condition = 2 * (erfcinv(2 * ber) ** 2) * (symb_rate / noise_bw)
             if gsnr >= condition:
-                bit_rate = 100.0 #
+                bit_rate = 100.0
             else:
                 bit_rate = 0.0
         if strategy == 'flex_rate':

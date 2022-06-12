@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 # function for constructing the data frame
-def weighted_lines_build(network, power=1e-3):
+def weighted_lines_build(network):
     from_to = []
     paths = []
     signal_pow = []
@@ -35,10 +35,10 @@ def weighted_lines_build(network, power=1e-3):
             current_path = list(paths[i][j])
             signal_info = info.SignalInformation(current_path)
             network.probe(signal_info)
-            signal_pow.append(signal_info.signal_power)
+            signal_pow.append(signal_info.average_power)
             noise.append(signal_info.noise_power)
             latency.append(signal_info.latency)
-            snr.append(10 * np.log10(signal_info.signal_power / signal_info.noise_power))
+            snr.append(10 * np.log10(np.power(signal_info.isnr, -1)))
     # building the dataframe
     data = list(zip(from_to, path_vector, signal_pow, noise, snr, latency))
     df = pd.DataFrame(data, columns=['FromTo', 'Path', 'Power', 'NoisePower', 'SNR', 'Latency'])
@@ -152,3 +152,16 @@ def plot_histogram(figure_num, list_data, nbins, edge_color, color, label, title
     figure = plt.gcf()  # get current figure
     figure.set_size_inches(8, 6)
 
+
+# Generate fresh traffic matrix as a dictionary
+def generate_traffic_matrix(network, M):
+    traffic_matrix = {}
+    for node in network.nodes:
+        traffic_matrix[node] = {}
+    for input_n in network.nodes:
+        for output_n in network.nodes:
+            if output_n == input_n:
+                traffic_matrix[input_n][output_n] = 0
+            elif output_n != input_n:
+                traffic_matrix[input_n][output_n] = 100 * M
+    return traffic_matrix

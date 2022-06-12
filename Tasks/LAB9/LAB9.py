@@ -16,9 +16,9 @@ file_flex = in_directory / 'nodes_full_flex_rate.json'
 file_shannon = in_directory / 'nodes_full_shannon.json'
 
 # output file
-outp_plot_snr = out_directory / '9d5_snr_fixed'
-outp_plot_lat = out_directory / '9d5_lat_fixed'
-outp_plot_br = out_directory / '9d5_br_fixed'
+outp_plot_snr = out_directory / '9d5_snr'
+outp_plot_lat = out_directory / '9d5_lat'
+outp_plot_br = out_directory / '9d5_br'
 
 
 #network generation
