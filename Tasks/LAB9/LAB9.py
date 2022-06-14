@@ -16,9 +16,9 @@ file_flex = in_directory / 'nodes_full_flex_rate.json'
 file_shannon = in_directory / 'nodes_full_shannon.json'
 
 # output file
-outp_plot_snr = out_directory / '9d5_snr'
-outp_plot_lat = out_directory / '9d5_lat'
-outp_plot_br = out_directory / '9d5_br'
+outp_plot_snr = out_directory / '9d5_snr3.png'
+outp_plot_lat = out_directory / '9d5_lat3.png'
+outp_plot_br = out_directory / '9d5_br3.png'
 
 
 #network generation
@@ -35,7 +35,10 @@ if not outp_plot_snr.is_file() and not outp_plot_lat.is_file() and not outp_plot
     t_start = time.time()
     connection_list_fixed = network_fixed.stream(connection_list_fixed, 'snr')
     t_end = time.time()
+    [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_list_fixed)
     [total_capacity_fixed, avg_bit_rate_fixed] = utls.compute_network_capacity_and_avg_bit_rate(connection_list_fixed)
+    print('Number of successful connections:', successful_connections)
+    print('Number of blocking events:', blocking_events)
     print('Total capacity allocated =', total_capacity_fixed, 'Gbps.')
     print('Average bit rate =', avg_bit_rate_fixed, 'Gbps.')
     print('... Fixed rate stream done (elapsed', t_end-t_start, 's).')
@@ -47,7 +50,10 @@ if not outp_plot_snr.is_file() and not outp_plot_lat.is_file() and not outp_plot
     t_start = time.time()
     connection_list_flex = network_flex.stream(connection_list_flex, 'snr')
     t_end = time.time()
+    [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_list_flex)
     [total_capacity_flex, avg_bit_rate_flex] = utls.compute_network_capacity_and_avg_bit_rate(connection_list_flex)
+    print('Number of successful connections:', successful_connections, '.')
+    print('Number of blocking events:', blocking_events, '.')
     print('Total capacity allocated =', total_capacity_flex, 'Gbps.')
     print('Average bit rate =', avg_bit_rate_flex, 'Gbps.')
     print('... Flexible rate stream done (elapsed', t_end-t_start, 's).')
@@ -59,7 +65,10 @@ if not outp_plot_snr.is_file() and not outp_plot_lat.is_file() and not outp_plot
     t_start = time.time()
     connection_list_shan = network_shan.stream(connection_list_shan, 'snr')
     t_end = time.time()
+    [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_list_shan)
     [total_capacity_shan, avg_bit_rate_shan] = utls.compute_network_capacity_and_avg_bit_rate(connection_list_shan)
+    print('Number of successful connections:', successful_connections, '.')
+    print('Number of blocking events:', blocking_events, '.')
     print('Total capacity allocated =', total_capacity_shan, 'Gbps.')
     print('Average bit rate =', avg_bit_rate_shan, 'Gbps.')
     print('... Shannon rate stream done (elapsed', t_end-t_start, 's).')
@@ -98,5 +107,6 @@ if not outp_plot_br.is_file():
                         'Bit rate for the various transreceiver simulations', 'Number of results', 'Bit rate, Gbps')
     plt.savefig(outp_plot_br)
 
+#traffic_matrix = utls.generate_traffic_matrix(network_fixed, 1)
+#connection_list_fixed = network_fixed.deploy_traffic_matrix(traffic_matrix)
 plt.show()
-

@@ -5,8 +5,9 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Tasks/LAB9/LAB9.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB9/LAB9.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/elements.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/elements.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/info.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/parameters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/results/7_wgraph.png" beforeDir="false" afterPath="$PROJECT_DIR$/results/7_wgraph.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -253,13 +254,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/core/elements.py</url>
-          <line>67</line>
+          <line>68</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Tasks/LAB9/LAB9.py</url>
-          <line>31</line>
-          <option name="timeStamp" value="73" />
+          <line>111</line>
+          <option name="timeStamp" value="76" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

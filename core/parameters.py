@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.constants as consts
 
+number_of_channels = 10
 gain = 10 ** (16 / 10)  # 16dB in linear units
 n_figure = 10 ** (3 / 10)  # 3dB in linear units
 alpha_db = 0.2  # [dB/km]

@@ -1,4 +1,5 @@
 import numpy as np
+import json
 import pandas as pd
 import core.info as info
 import random
@@ -46,36 +47,42 @@ def weighted_lines_build(network):
 
 
 # function for building and updating the route space dataframe
-def route_space_build(network):
-    labels = []
-    occupancy = []
-    # building the dataframe
-    for i in network.weighted_lines['Path']:
-        labels.append(i)
-        occupancy.append(np.ones(10, dtype=int))
-    df = pd.DataFrame(occupancy)
-    df.insert(0, 'Path', labels, True)
-    for j in network.weighted_lines['Path']:
-        path_string = j
-        current_path = list(j.replace('->', ''))
-        elements = []
-        update_rs = np.ones(10, dtype=int)
-        # saving all nodes and all lines in the element vector
-        for i in range(0, len(current_path) - 1):
-            if i != 0:
-                elements.append(current_path[i])
-            elements.append(current_path[i] + current_path[i + 1])
-        # compute the update array
-        for i in range(0, len(elements)):
-            if len(elements[i]) == 1:  # it's a node
-                update_rs *= network.nodes[elements[i]].switching_matrix[elements[i - 1][0]][elements[i + 1][1]]
-            elif len(elements[i]) == 2:  # it's a line
-                update_rs *= network.lines[elements[i]].state
-        # modify the corresponding data frame row
-        row_index = df.index[df['Path'] == path_string].tolist()
-        col_index = df.columns != 'Path'
-        df.loc[row_index, col_index] = update_rs
-    return df
+def route_space_build(network):  # update route space analyzing the state of each line
+    data_f = pd.DataFrame(columns=['Path', 'Availability'])
+    # define lists for dataframe
+    availabilities_dataframe = []
+    titles = []
+    # take the paths from weighted paths and analyze the availability of channels
+    for path in network.weighted_lines['Path']:  # extracts each path from weighted paths
+        titles.append(path)  # save each path label for route space definition
+        path = path.replace('->', '')  # removes arrows
+        availability_per_channel = np.ones(number_of_channels, dtype='int')
+        # Each time will be updated this availability along path
+        # if len(path)==2:
+        #     availability_per_channel = self.lines[path].state
+        # else:
+        start = True
+        previous_node = ''
+        while len(path) > 1:  # as propagate does, let's analyze path until there is at least a line
+            if start:  # if it is the first node, let's define availability only by line states
+                availability_per_channel = np.array(network.lines[path[:2]].state)
+                start = False
+            else:
+                # switching matrix element for current node
+                block = np.array(network.nodes[path[0]].switching_matrix[previous_node][path[1]])
+                # array of line states for current line
+                line_state = np.array(network.lines[path[:2]].state)
+                # new state array
+                availability_per_channel *= block * line_state
+            # update path to go on the path and have next line
+            previous_node = path[0]
+            path = path[1:]
+        # save the availabilities of the channels
+        availabilities_dataframe.append(availability_per_channel)
+    # produce route space dataframe
+    data_f['Path'] = titles
+    data_f['Availability'] = availabilities_dataframe
+    return data_f
 
 
 # function for updating the route space dataframe after the deployment of a connection
@@ -119,12 +126,18 @@ def generate_random_connections(network):
     nodes = list(network.nodes.keys())
     connections = []
     for i in range(0, number_of_connections):
-        new_nodes = list(nodes)
-        strt = random.choice(new_nodes)
-        new_nodes.remove(strt)
-        end = random.choice(new_nodes)
+        [strt, end] = random_node_pair(nodes)
         connections.append(el.Connection(strt, end))
     return connections
+
+
+# Function for generating pairs of nodes
+def random_node_pair(nodes):
+    new_nodes = list(nodes)
+    strt = random.choice(new_nodes)
+    new_nodes.remove(strt)
+    end = random.choice(new_nodes)
+    return strt, end
 
 
 # Function for computing the capacity and average bit rate
@@ -132,6 +145,32 @@ def compute_network_capacity_and_avg_bit_rate(connections):
     total_capacity = np.nansum([connections[k].bit_rate for k in range(0, len(connections))])
     avg_bit_rate = total_capacity / len(connections)
     return total_capacity, avg_bit_rate
+
+
+# Function for counting the number of occurrencies of the various lines
+def count_line_usage(connections, net_lines):
+    list_inputs = [connection.input for connection in connections]
+    list_outputs = [connection.output for connection in connections]
+    lines = [line for line in net_lines.keys()]
+    occurrences_in = [0 for i in range(0, len(lines))]
+    occurrences_out = [0 for i in range(0, len(lines))]
+    for ind in list_inputs:
+        occurrences_in[lines.index(ind)] += 1
+    for ind in list_outputs:
+        occurrences_out[lines.index(ind)] += 1
+    return lines, occurrences_in, occurrences_out
+
+
+# Function for computing the number of successful connections and blocking events
+def compute_successful_blocking_events(connections):
+    blocking_events = 0
+    successful_connections = 0
+    for k in range(0, len(connections)):
+        if connections[k].connection_status:
+            blocking_events += 1
+        elif not connections[k].connection_status:
+            successful_connections += 1
+    return successful_connections, blocking_events
 
 
 # Function for automatic plots
@@ -153,15 +192,38 @@ def plot_histogram(figure_num, list_data, nbins, edge_color, color, label, title
     figure.set_size_inches(8, 6)
 
 
-# Generate fresh traffic matrix as a dictionary
+# Generate fresh traffic matrix as a dictionary. Each entry represents an input node and it's a dictionary whose entries
+# are the connected nodes (themselves dictionaries containing the traffic request in Gbps).
 def generate_traffic_matrix(network, M):
     traffic_matrix = {}
     for node in network.nodes:
         traffic_matrix[node] = {}
     for input_n in network.nodes:
         for output_n in network.nodes:
-            if output_n == input_n:
-                traffic_matrix[input_n][output_n] = 0
-            elif output_n != input_n:
+            if output_n != input_n:
                 traffic_matrix[input_n][output_n] = 100 * M
     return traffic_matrix
+
+
+# Free lines and switching matrix
+def free_lines_and_switch_matrix(file, lines, nodes):
+    for lbl in lines.keys():
+        lines[lbl].state = [1] * number_of_channels  # at the end of the stream, the lines are again free
+        with open(file) as json_file:
+            nodes_from_file = json.load(json_file)
+        # rewrite the switching matrix
+        for i, j in nodes_from_file.items():
+            for k in j:
+                if k == 'switching_matrix':
+                    nodes[i].switching_matrix = nodes_from_file[i][k]
+
+
+# check if traffic matrix is saturated (True = saturated, False = some traffic can still be allocated)
+# def is_matrix_saturated(matrix):
+#     saturated = True
+#     for i in matrix:
+#         for j in matrix[i]:
+#             if matrix[i][j] != 0 and matrix[i][j] != np.inf:
+#                 saturated = False
+#                 return saturated
+#     return saturated

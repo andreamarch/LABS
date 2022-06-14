@@ -1,5 +1,6 @@
 import json
 import math
+import random
 
 import scipy.constants as consts
 import numpy as np
@@ -69,7 +70,7 @@ class Line:
         self.label = label
         self.length = length
         self.successive = dict()
-        self.state = np.ones(10, dtype=int)  # 1 means 'free', 10 is the number of WDM channels
+        self.state = np.ones(number_of_channels, dtype=int)  # 1 means 'free'
         self.n_amplifiers = int(np.ceil(length / span_length / 1e3) + 1)  # number of amplifiers, 1 amplifier every 80km
         self.n_span = self.n_amplifiers - 1  # number of fiber spans
         self.eta = 16 / (27 * math.pi) * np.log(
@@ -223,9 +224,11 @@ class Network:
                     path = list(row.Path.replace('->', ''))
                     flag = False
                     cnt = -1
+                    # saving the row of the df corresponding to the current path
                     current_path = self.route_space.loc[self.route_space['Path'] == row.Path]
-                    occupancy = current_path.loc[:, current_path.columns != 'Path']
-                    occupancy = pd.DataFrame.to_numpy(occupancy, dtype=int)[0]
+                    # saving channel occupation information
+                    occupancy = np.array(current_path['Availability'])[0]
+                    # looking for a free channel
                     for i in occupancy:
                         cnt += 1
                         if i == 1:
@@ -250,9 +253,8 @@ class Network:
                     cnt = -1
                     # saving the row of the df corresponding to the current path
                     current_path = self.route_space.loc[self.route_space['Path'] == row.Path]
-                    # saving the columns containing the info about the channel occupation
-                    occupancy = current_path.loc[:, current_path.columns != 'Path']
-                    occupancy = pd.DataFrame.to_numpy(occupancy, dtype=int)[0]
+                    # saving channel occupation information
+                    occupancy = np.array(current_path['Availability'])[0]
                     # looking for a free channel
                     for i in occupancy:
                         cnt += 1
@@ -314,7 +316,7 @@ class Network:
             circ = plt.Circle((xx, yy), radius=0.5e2)  # circles
             circ.set_facecolor('c')
             circ.set_edgecolor('k')
-            ax.txt = plt.text(xx - 0.13, yy - 0.13, s, fontsize=14)  # labels
+            ax.txt = plt.text(xx - 0.13e2, yy - 0.13e2, s, fontsize=14)  # labels
             ax.add_patch(circ)
         # Save as png
         plt.savefig(out_dir / '7_wgraph.png')
@@ -323,8 +325,6 @@ class Network:
 
     def stream(self, connection_list, lat_or_snr='latency'):
         lat_or_snr = lat_or_snr.lower()
-        count_block_events = 0
-        block_connection = False
         for i in range(0, len(connection_list)):
             current_connection = connection_list[i]
             inp = current_connection.input
@@ -334,7 +334,7 @@ class Network:
                 best_lat_path = vec[1]
                 channel = vec[2]
                 if best_lat_path == '':
-                    block_connection = True
+                    current_connection.connection_status = True
                 elif best_lat_path != '':  # if an available path was found, the string shouldn't be empty
                     first_node = best_lat_path[0]
                     current_path = list(best_lat_path)
@@ -343,23 +343,21 @@ class Network:
                     signal.path = current_path  # re-instantiate the signal path because it was deleted by propagate
                     current_connection.bit_rate = self.calculate_bit_rate(signal, self.nodes[first_node].transceiver)
                     if current_connection.bit_rate == 0.0:
-                        block_connection = True
-                    utils.route_space_update(self, current_path)
+                        current_connection.connection_status = True
+                    self.route_space = utils.route_space_build(self)
                     current_connection.snr = 10 * np.log10(np.power(signal.isnr, -1))
                     current_connection.latency = signal.latency
-                if block_connection:  # no lines available between these nodes
-                    block_connection = False
+                if current_connection.connection_status:  # no lines available between these nodes
                     current_connection.snr = 0
                     current_connection.latency = np.NaN
                     current_connection.channel = None
                     current_connection.bit_rate = np.NaN
-                    count_block_events += 1
             elif lat_or_snr == 'snr':
                 vec = list(self.find_best_snr(inp, outp))
                 best_snr_path = vec[1]
                 channel = vec[2]
                 if best_snr_path == '':
-                    block_connection = True
+                    current_connection.connection_status = True
                 if best_snr_path != '':  # if an available path was found, the string shouldn't be empty
                     first_node = best_snr_path[0]
                     current_path = list(best_snr_path)
@@ -368,29 +366,18 @@ class Network:
                     signal.path = current_path  # re-instantiate the signal path because it was deleted by propagate
                     current_connection.bit_rate = self.calculate_bit_rate(signal, self.nodes[first_node].transceiver)
                     if current_connection.bit_rate == 0.0:
-                        block_connection = True
-                    utils.route_space_update(self, current_path)
+                        current_connection.connection_status = True
+                    self.route_space = utils.route_space_build(self)
                     current_connection.snr = 10 * np.log10(np.power(signal.isnr, -1))
                     current_connection.latency = signal.latency
-                if block_connection:  # no lines available between these nodes
-                    block_connection = False
+                if current_connection.connection_status:  # no lines available between these nodes
                     current_connection.snr = 0
                     current_connection.latency = np.NaN
                     current_connection.channel = None
                     current_connection.bit_rate = np.NaN
-                    count_block_events += 1
             else:  # wrong string was passed
                 print('Please choose between strings "snr" and "latency".')
-        print('There were', count_block_events, 'blocking events out of', number_of_connections, 'connections')
-#        for lbl in self.lines.keys():
-#            self.lines[lbl].state = [1] * 10  # at the end of the stream, the lines are again free
-#        with open(file) as json_file:
-#            nodes_from_file = json.load(json_file)
-#        # rewrite the switching matrix
-#        for i, j in nodes_from_file.items():
-#            for k in j:
-#                if k == 'switching_matrix':
-#                    self.nodes[i].switching_matrix = nodes_from_file[i][k]
+        # print('There were', count_block_events, 'blocking events out of', number_of_connections, 'connections')
         return connection_list
 
     def calculate_bit_rate(self, lightpath, strategy):
@@ -428,6 +415,29 @@ class Network:
             bit_rate = 2 * symb_rate * np.log2(1 + gsnr * symb_rate / noise_bw) / 1e9
         return bit_rate
 
+    def deploy_traffic_matrix(self, traffic_matrix, lat_or_snr='snr'):
+        connections = []
+        iteration_number = 0
+        while len(traffic_matrix) > 0:
+            in_node = random.choice(list(traffic_matrix.keys()))
+            out_node = random.choice(list(traffic_matrix[in_node].keys()))
+            iteration_number += 1
+            current_connection = Connection(in_node, out_node)
+            current_connection = self.stream([current_connection], lat_or_snr)
+            current_connection = current_connection[0]
+            connections.append(current_connection)
+            # Successful connection: subtract its bit rate from the request
+            if not current_connection.connection_status:
+                traffic_matrix[in_node][out_node] -= current_connection.bit_rate
+                if traffic_matrix[in_node][out_node] <= 0:
+                    traffic_matrix[in_node].pop(out_node)  # all traffic allocated
+            # Connection blocked: remove the request from the traffic matrix
+            elif current_connection.connection_status:
+                traffic_matrix[in_node].pop(out_node)
+            if len(traffic_matrix[in_node]) == 0:
+                traffic_matrix.pop(in_node)
+        return connections
+
 
 class Connection:
     def __init__(self, inp, output, signal_power=None):
@@ -437,3 +447,4 @@ class Connection:
         self.snr = 0.0
         self.latency = 0.0
         self.bit_rate = 0.0
+        self.connection_status = False  # False for successful connection, True for blocked connection
