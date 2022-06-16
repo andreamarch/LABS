@@ -418,7 +418,12 @@ class Network:
     def deploy_traffic_matrix(self, traffic_matrix, lat_or_snr='snr'):
         connections = []
         iteration_number = 0
-        while len(traffic_matrix) > 0:
+        saturation_flag = False
+        sat_count = 0
+        length_traffic_matrix = 0
+        for i in traffic_matrix.keys():
+            length_traffic_matrix += len(traffic_matrix[i])
+        while len(traffic_matrix) > 0 and iteration_number < max_number_of_iterations:
             in_node = random.choice(list(traffic_matrix.keys()))
             out_node = random.choice(list(traffic_matrix[in_node].keys()))
             iteration_number += 1
@@ -433,10 +438,13 @@ class Network:
                     traffic_matrix[in_node].pop(out_node)  # all traffic allocated
             # Connection blocked: remove the request from the traffic matrix
             elif current_connection.connection_status:
+                sat_count += 1
                 traffic_matrix[in_node].pop(out_node)
             if len(traffic_matrix[in_node]) == 0:
                 traffic_matrix.pop(in_node)
-        return connections
+        if sat_count == length_traffic_matrix:
+            saturation_flag = True
+        return connections, saturation_flag
 
 
 class Connection:

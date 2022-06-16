@@ -206,16 +206,17 @@ def generate_traffic_matrix(network, M):
 
 
 # Free lines and switching matrix
-def free_lines_and_switch_matrix(file, lines, nodes):
-    for lbl in lines.keys():
-        lines[lbl].state = [1] * number_of_channels  # at the end of the stream, the lines are again free
+def free_lines_and_switch_matrix(file, network):
+    for lbl in network.lines.keys():
+        network.lines[lbl].state = [1] * number_of_channels  # at the end of the stream, the lines are again free
         with open(file) as json_file:
             nodes_from_file = json.load(json_file)
         # rewrite the switching matrix
         for i, j in nodes_from_file.items():
             for k in j:
                 if k == 'switching_matrix':
-                    nodes[i].switching_matrix = nodes_from_file[i][k]
+                    network.nodes[i].switching_matrix = nodes_from_file[i][k]
+    network.route_space = route_space_build(network)
 
 
 # check if traffic matrix is saturated (True = saturated, False = some traffic can still be allocated)
@@ -227,3 +228,54 @@ def free_lines_and_switch_matrix(file, lines, nodes):
 #                 saturated = False
 #                 return saturated
 #     return saturated
+
+
+def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', color=None, label=None, title='', ylabel='',
+             xlabel='', savefig_path=None, bbox_to_anchor=None, loc=None, bottom=None, NaN_display=False, myalpha=None,
+             remove_y_ticks=None):
+    if NaN_display:
+        list_data = list(np.nan_to_num(list_data))  # replace NaN with 0
+
+    x = np.arange(len(x_ticks)) if x_ticks else 1
+
+    # fig = plt.figure(figure_num)
+    fig, ax = plt.subplots()
+    # ax = plt.gca()
+    fig.subplots_adjust(bottom=bottom)
+    for index in range(0, len(list_data)):
+        width = 0.15
+        x_i = x + width * (index + 0.5 - len(list_data) / 2)
+        plt.bar(x=x_i, width=width, height=list_data[index], edgecolor=edge_color,
+                color=color[index] if color else None, alpha=myalpha)
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    ax.set_axisbelow(True)
+    plt.grid()
+    if x_ticks:
+        # also define the labels we'll use (note this MUST have the same size as `xticks`!)
+        xtick_labels = ['M='+str(M) for M in x_ticks]
+        # add the ticks and labels to the plot
+        ax.set_xticks(x)
+        ax.set_xticklabels(xtick_labels)
+    else:
+        plt.tick_params(axis='x',  # changes apply to the x-axis
+                        which='both',  # both major and minor ticks are affected
+                        bottom=False,  # ticks along the bottom edge are off
+                        top=False,  # ticks along the top edge are off
+                        labelbottom=False)
+    if remove_y_ticks:
+        plt.tick_params(axis='y',  # changes apply to the x-axis
+                        which='both',  # both major and minor ticks are affected
+                        left=False, right=False, labelleft=False)
+    ax.legend(labels=label, bbox_to_anchor=bbox_to_anchor, loc=loc)
+
+    figure = plt.gcf()  # get current figure
+    figure.set_size_inches(8, 6)
+
+    # savefig_path = None ##### AVOIDED SAVE AS DEBUG
+    if savefig_path:  # if None avoid save
+        # if not os.path.isdir('../Results/Lab9'): # if Results doesn't exists, it creates it
+        #     os.makedirs('../Results/Lab9')
+        plt.savefig(savefig_path)
+
