@@ -20,6 +20,8 @@ outp_plot_snr = out_directory / '9d5_snr.png'
 outp_plot_lat = out_directory / '9d5_lat.png'
 outp_plot_br = out_directory / '9d5_br.png'
 
+save_my_figure = False
+
 # network generation
 network_fixed = el.Network(file_fixed)
 network_fixed.connect()
@@ -143,20 +145,21 @@ for M in range(1, 52, 5):
 
     M_list.append(M)
     traffic_matrix_fixed = utls.generate_traffic_matrix(network_fixed, M)
-    [connection_tm_fixed, saturation_fixed] = network_fixed.deploy_traffic_matrix(traffic_matrix_fixed)
+    [connection_tm_fixed, saturation_fixed] = network_fixed.deploy_traffic_matrix(traffic_matrix_fixed, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_fixed)
     [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_fixed)
+    if saturation_fixed:
+        print('Fixed network for M =', M, ': network was saturated.')
+    elif not saturation_fixed:  # and len(connection_tm_fixed) < max_number_of_iterations:
+        print('Fixed network for M =', M, ': traffic matrix was saturated')
+    # elif not saturation_fixed and len(connection_tm_fixed) == max_number_of_iterations:
+    #     print('Fixed network for M =', M, ': maximum number of connections was reached.')
     connections_fixed_per_M.append(successful_connections + blocking_events)
     number_connections_fixed_rate_per_M.append(successful_connections)
     number_blocking_events_fixed_rate_per_M.append(blocking_events)
     capacities_fixed_rate_per_M.append(total_capacity)
     average_bit_rate_fixed_rate_per_M.append(avg_bit_rate)
-    if saturation_fixed:
-        print('Fixed network for M =', M, ': network was saturated.')
-    elif not saturation_fixed and len(connection_tm_fixed) < max_number_of_iterations:
-        print('Fixed network for M =', M, ': traffic matrix was saturated')
-    elif not saturation_fixed and len(connection_tm_fixed) == max_number_of_iterations:
-        print('Fixed network for M =', M, ': maximum number of connections was reached.')
+    percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
     print('Number of successful connections:', successful_connections, '.')
     print('Number of blocking events:', blocking_events, '.')
     print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
@@ -164,20 +167,21 @@ for M in range(1, 52, 5):
     print()
 
     traffic_matrix_flex = utls.generate_traffic_matrix(network_flex, M)
-    [connection_tm_flex, saturation_flex] = network_flex.deploy_traffic_matrix(traffic_matrix_flex)
+    [connection_tm_flex, saturation_flex] = network_flex.deploy_traffic_matrix(traffic_matrix_flex, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_flex)
     [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_flex)
+    if saturation_flex:
+        print('Flexible network for M =', M, ': network was saturated.')
+    elif not saturation_flex:  # and len(connection_tm_flex) < max_number_of_iterations:
+        print('Flexible network for M =', M, ': traffic matrix was saturated')
+    # elif not saturation_flex and len(connection_tm_flex) == max_number_of_iterations:
+    #     print('Flexible network for M =', M, ': maximum number of connections was reached.')
     connections_flex_per_M.append(successful_connections + blocking_events)
     number_connections_flex_rate_per_M.append(successful_connections)
     number_blocking_events_flex_rate_per_M.append(blocking_events)
     capacities_flex_rate_per_M.append(total_capacity)
     average_bit_rate_flex_rate_per_M.append(avg_bit_rate)
-    if saturation_flex:
-        print('Flexible network for M =', M, ': network was saturated.')
-    elif not saturation_flex and len(connection_tm_flex) < max_number_of_iterations:
-        print('Flexible network for M =', M, ': traffic matrix was saturated')
-    elif not saturation_flex and len(connection_tm_flex) == max_number_of_iterations:
-        print('Flexible network for M =', M, ': maximum number of connections was reached.')
+    percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
     print('Number of successful connections:', successful_connections, '.')
     print('Number of blocking events:', blocking_events, '.')
     print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
@@ -185,20 +189,21 @@ for M in range(1, 52, 5):
     print()
 
     traffic_matrix_shan = utls.generate_traffic_matrix(network_shan, M)
-    [connection_tm_shan, saturation_shan] = network_shan.deploy_traffic_matrix(traffic_matrix_shan)
+    [connection_tm_shan, saturation_shan] = network_shan.deploy_traffic_matrix(traffic_matrix_shan, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_shan)
     [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_shan)
+    if saturation_shan:
+        print('Shannon network for M =', M, ': network was saturated.')
+    elif not saturation_shan:  # and len(connection_tm_shan) < max_number_of_iterations:
+        print('Shannon network for M =', M, ': traffic matrix was saturated')
+    # elif not saturation_shan and len(connection_tm_shan) == max_number_of_iterations:
+    #     print('Fixed network for M =', M, ': maximum number of connections was reached.')
     connections_shannon_per_M.append(successful_connections + blocking_events)
     number_connections_shannon_per_M.append(successful_connections)
     number_blocking_events_shannon_per_M.append(blocking_events)
     capacities_shannon_per_M.append(total_capacity)
     average_bit_rate_shannon_per_M.append(avg_bit_rate)
-    if saturation_shan:
-        print('Shannon network for M =', M, ': network was saturated.')
-    elif not saturation_shan and len(connection_tm_shan) < max_number_of_iterations:
-        print('Shannon network for M =', M, ': traffic matrix was saturated')
-    elif not saturation_shan and len(connection_tm_shan) == max_number_of_iterations:
-        print('Fixed network for M =', M, ': maximum number of connections was reached.')
+    percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
     print('Number of successful connections:', successful_connections, '.')
     print('Number of blocking events:', blocking_events, '.')
     print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
@@ -223,21 +228,23 @@ for M in range(1, 52, 5):
 
     utls.plot_histogram(1, snr_list, 20, 'k', ['r', 'b', 'g'], ['Fixed rate', 'Flexible rate', 'Shannon rate'],
                         'SNR distribution, M = ' + str(M), 'Number of results', 'SNR, dB')
-    plt.savefig(outp_plot_snr)
+    if save_my_figure:
+        plt.savefig(outp_plot_snr)
 
     utls.plot_histogram(2, lat_list, 20, 'k', ['r', 'b', 'g'], ['Fixed rate', 'Flexible rate', 'Shannon rate'],
                         'Latency, M = ' + str(M), 'Number of results', 'Latency, s')
-    plt.savefig(outp_plot_lat)
+    if save_my_figure:
+        plt.savefig(outp_plot_lat)
 
     utls.plot_histogram(3, br_list, 15, 'k', ['r', 'b', 'g'], ['Fixed rate', 'Flexible rate', 'Shannon rate'],
                         'Bit rate, M = ' + str(M), 'Number of results', 'Bit rate, Gbps')
-    plt.savefig(outp_plot_br)
+    if save_my_figure:
+        plt.savefig(outp_plot_br)
 
     utls.free_lines_and_switch_matrix(file_fixed, network_fixed)
     utls.free_lines_and_switch_matrix(file_flex, network_flex)
     utls.free_lines_and_switch_matrix(file_shannon, network_shan)
 
-    # plt.show()
 
 # Number Connections
 utls.plot_bar(figure_num=13, list_data=[[number_connections_fixed_rate_per_M[i] for i in range(0, len(M_list))],
@@ -245,9 +252,10 @@ utls.plot_bar(figure_num=13, list_data=[[number_connections_fixed_rate_per_M[i] 
                                         [number_connections_shannon_per_M[i] for i in range(0, len(M_list))]],
               x_ticks=[M for M in M_list], bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center',
               edge_color='k', color=['r', 'b', 'g'], label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'],
-              xlabel='M', ylabel='Number of connections',
+              xlabel='M', ylabel='Number of successfull connections',
               title='Total number of connections per M', myalpha=1)
-plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_connections_per_M')
+if save_my_figure:
+    plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_connections_per_M')
 
 # Number Blocking Events
 utls.plot_bar(figure_num=14, list_data=[[number_blocking_events_fixed_rate_per_M[i] for i in range(0, len(M_list))],
@@ -257,7 +265,8 @@ utls.plot_bar(figure_num=14, list_data=[[number_blocking_events_fixed_rate_per_M
               edge_color='k', color=['r', 'b', 'g'], label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'],
               xlabel='M', ylabel='Number of blocking events',
               title='Number of blocking events per M', myalpha=1)
-plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_blocking_events_per_M')
+if save_my_figure:
+    plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_blocking_events_per_M')
 
 # Capacity
 utls.plot_bar(figure_num=14, list_data=[[capacities_fixed_rate_per_M[i]/1000 for i in range(0, len(M_list))],
@@ -267,7 +276,8 @@ utls.plot_bar(figure_num=14, list_data=[[capacities_fixed_rate_per_M[i]/1000 for
               edge_color='k', color=['r', 'b', 'g'], label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'],
               xlabel='M', ylabel='Total Capacity, Tbps',
               title='Total network capacity per M', myalpha=1)
-plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_capacity_per_M')
+if save_my_figure:
+    plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_capacity_per_M')
 
 # Average Bit Rate
 utls.plot_bar(figure_num=14, list_data=[[average_bit_rate_fixed_rate_per_M[i] for i in range(0, len(M_list))],
@@ -277,5 +287,6 @@ utls.plot_bar(figure_num=14, list_data=[[average_bit_rate_fixed_rate_per_M[i] fo
               edge_color='k', color=['r', 'b', 'g'], label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'],
               xlabel='M', ylabel='Average bit rate, Gbps',
               title='Average bit rate per M', myalpha=1)
-plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_avg_bit_rate_per_M')
+if save_my_figure:
+    plt.savefig(out_directory / 'LAB9_POINT7_res' / '9d7_avg_bit_rate_per_M')
 plt.show()

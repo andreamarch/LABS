@@ -21,4 +21,5 @@ f0 = 193.414e12  # Reference frequency [Hz]
 strategy_bit_rate = 'fixed_rate'
 number_of_connections = 100
 
-max_number_of_iterations = 250  # max number of iterations for the deploy_traffic_matrix
+max_number_of_iterations = 200  # max number of iterations for the deploy_traffic_matrix
+be_threshold = 15/100  # threshold for the number of blocking events

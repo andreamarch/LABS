@@ -144,7 +144,7 @@ class Line:
     def optimized_launch_power(self):
         p_ase = self.ase_generation()
         tmp_arg = p_ase / (2 * self.eta * self.n_span * noise_bw)
-        optimum_power = tmp_arg ** (1/3)
+        optimum_power = tmp_arg ** (1 / 3)
         return optimum_power
 
 
@@ -415,15 +415,15 @@ class Network:
             bit_rate = 2 * symb_rate * np.log2(1 + gsnr * symb_rate / noise_bw) / 1e9
         return bit_rate
 
-    def deploy_traffic_matrix(self, traffic_matrix, lat_or_snr='snr'):
+    def deploy_traffic_matrix(self, traffic_matrix, optimise_block_events=False, lat_or_snr='snr'):
         connections = []
         iteration_number = 0
         saturation_flag = False
-        sat_count = 0
+        block_event_count = 0
         length_traffic_matrix = 0
         for i in traffic_matrix.keys():
             length_traffic_matrix += len(traffic_matrix[i])
-        while len(traffic_matrix) > 0 and iteration_number < max_number_of_iterations:
+        while len(traffic_matrix) > 0 and not saturation_flag:
             in_node = random.choice(list(traffic_matrix.keys()))
             out_node = random.choice(list(traffic_matrix[in_node].keys()))
             iteration_number += 1
@@ -438,12 +438,15 @@ class Network:
                     traffic_matrix[in_node].pop(out_node)  # all traffic allocated
             # Connection blocked: remove the request from the traffic matrix
             elif current_connection.connection_status:
-                sat_count += 1
-                traffic_matrix[in_node].pop(out_node)
+                block_event_count += 1
+                if optimise_block_events:
+                    # if the flag is true, the matrix element is removed to avoid other connection attempts between
+                    # those nodes. False is default.
+                    traffic_matrix[in_node].pop(out_node)
             if len(traffic_matrix[in_node]) == 0:
                 traffic_matrix.pop(in_node)
-        if sat_count == length_traffic_matrix:
-            saturation_flag = True
+            if block_event_count >= np.ceil(iteration_number * be_threshold):
+                saturation_flag = True
         return connections, saturation_flag
 
 
