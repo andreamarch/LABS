@@ -142,9 +142,22 @@ def random_node_pair(nodes):
 
 # Function for computing the capacity and average bit rate
 def compute_network_capacity_and_avg_bit_rate(connections):
-    total_capacity = np.nansum([connections[k].bit_rate for k in range(0, len(connections))])
-    avg_bit_rate = total_capacity / len(connections)
-    return total_capacity, avg_bit_rate
+    br_list = np.array([connections[k].bit_rate for k in range(0, len(connections))])
+    total_capacity = np.nansum(br_list)
+    avg_bit_rate = total_capacity / (len(br_list) - np.count_nonzero(np.isnan(br_list)))
+    max_bit_rate = max(br_list)
+    min_bit_rate = min(br_list)
+    return total_capacity, avg_bit_rate, max_bit_rate, min_bit_rate
+
+
+# Function for computing average, minimum and maximum snr
+def compute_average_max_min_snr(connections):
+    snr_list = np.array([connections[k].snr for k in range(0, len(connections))])
+    snr_list = 10 ** (snr_list[np.nonzero(snr_list)] / 10)
+    snr_average = 10 * np.log10(sum(snr_list) / len(snr_list))
+    snr_min = 10 * np.log10(min(snr_list))
+    snr_max = 10 * np.log10(max(snr_list))
+    return snr_average, snr_max, snr_min
 
 
 # Function for counting the number of occurrencies of the various lines

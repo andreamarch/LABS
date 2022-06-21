@@ -147,7 +147,7 @@ for M in range(1, 52, 5):
     traffic_matrix_fixed = utls.generate_traffic_matrix(network_fixed, M)
     [connection_tm_fixed, saturation_fixed] = network_fixed.deploy_traffic_matrix(traffic_matrix_fixed, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_fixed)
-    [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_fixed)
+    [total_capacity, avg_bit_rate, _, _] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_fixed)
     if saturation_fixed:
         print('Fixed network for M =', M, ': network was saturated.')
     elif not saturation_fixed:  # and len(connection_tm_fixed) < max_number_of_iterations:
@@ -169,7 +169,7 @@ for M in range(1, 52, 5):
     traffic_matrix_flex = utls.generate_traffic_matrix(network_flex, M)
     [connection_tm_flex, saturation_flex] = network_flex.deploy_traffic_matrix(traffic_matrix_flex, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_flex)
-    [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_flex)
+    [total_capacity, avg_bit_rate, _, _] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_flex)
     if saturation_flex:
         print('Flexible network for M =', M, ': network was saturated.')
     elif not saturation_flex:  # and len(connection_tm_flex) < max_number_of_iterations:
@@ -191,7 +191,7 @@ for M in range(1, 52, 5):
     traffic_matrix_shan = utls.generate_traffic_matrix(network_shan, M)
     [connection_tm_shan, saturation_shan] = network_shan.deploy_traffic_matrix(traffic_matrix_shan, True)
     [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_shan)
-    [total_capacity, avg_bit_rate] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_shan)
+    [total_capacity, avg_bit_rate, _, _] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_shan)
     if saturation_shan:
         print('Shannon network for M =', M, ': network was saturated.')
     elif not saturation_shan:  # and len(connection_tm_shan) < max_number_of_iterations:
