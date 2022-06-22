@@ -370,7 +370,7 @@ if do_simulations[0]:
     if save_my_figure:
         plt.savefig(outp_plot_connections)
 
-# ----------------- POINT 1 (Single Traffic Matrix) -----------------
+# ----------------- POINT 2 (Network Congestion) -----------------
 if do_simulations[1]:
     connections_fixed_per_M = []
     number_connections_fixed_rate_per_M = []
@@ -380,6 +380,8 @@ if do_simulations[1]:
     minimum_snr_fixed_per_M = []
     maximum_snr_fixed_per_M = []
     average_snr_fixed_per_M = []
+    minimum_bit_rate_fixed_per_M = []
+    maximum_bit_rate_fixed_per_M = []
 
     connections_flex_per_M = []
     number_connections_flex_rate_per_M = []
@@ -389,6 +391,8 @@ if do_simulations[1]:
     minimum_snr_flex_per_M = []
     maximum_snr_flex_per_M = []
     average_snr_flex_per_M = []
+    minimum_bit_rate_flex_per_M = []
+    maximum_bit_rate_flex_per_M = []
 
     connections_shannon_per_M = []
     number_connections_shannon_per_M = []
@@ -398,9 +402,11 @@ if do_simulations[1]:
     minimum_snr_shannon_per_M = []
     maximum_snr_shannon_per_M = []
     average_snr_shannon_per_M = []
+    minimum_bit_rate_shannon_per_M = []
+    maximum_bit_rate_shannon_per_M = []
 
     M_list = []
-    for M in range(1, 52, 5):
+    for M in range(10, 50, 10):
         M_list.append(M)
         print('----------------------')
         print('Simulation with M =', M)
@@ -420,6 +426,8 @@ if do_simulations[1]:
         number_blocking_events_fixed_rate_per_M.append(blocking_events)
         capacities_fixed_rate_per_M.append(total_capacity)
         average_bit_rate_fixed_rate_per_M.append(avg_bit_rate)
+        minimum_bit_rate_fixed_per_M.append(min_br)
+        maximum_bit_rate_fixed_per_M.append(max_br)
         average_snr_fixed_per_M.append(avg_snr)
         maximum_snr_fixed_per_M.append(max_snr)
         minimum_snr_fixed_per_M.append(min_snr)
@@ -447,6 +455,8 @@ if do_simulations[1]:
         number_blocking_events_flex_rate_per_M.append(blocking_events)
         capacities_flex_rate_per_M.append(total_capacity)
         average_bit_rate_flex_rate_per_M.append(avg_bit_rate)
+        minimum_bit_rate_flex_per_M.append(min_br)
+        maximum_bit_rate_flex_per_M.append(max_br)
         average_snr_flex_per_M.append(avg_snr)
         maximum_snr_flex_per_M.append(max_snr)
         minimum_snr_flex_per_M.append(min_snr)
@@ -474,6 +484,8 @@ if do_simulations[1]:
         number_blocking_events_shannon_per_M.append(blocking_events)
         capacities_shannon_per_M.append(total_capacity)
         average_bit_rate_shannon_per_M.append(avg_bit_rate)
+        minimum_bit_rate_shannon_per_M.append(min_br)
+        maximum_bit_rate_shannon_per_M.append(max_br)
         average_snr_shannon_per_M.append(avg_snr)
         maximum_snr_shannon_per_M.append(max_snr)
         minimum_snr_shannon_per_M.append(min_snr)
@@ -488,3 +500,107 @@ if do_simulations[1]:
         print()
         print()
         utls.free_lines_and_switch_matrix(file_shannon, network_shan)
+    # output path strings
+    from_to_M_string = str(M_list[0])+'_to_' + str(M_list[len(M_list)-1])
+    outp_plot_avg_snr = out_directory / 'Point2' / ('10d2_average_snr_M_' + from_to_M_string)
+    outp_plot_min_snr = out_directory / 'Point2' / ('10d2_min_snr_M' + from_to_M_string)
+    outp_plot_max_snr = out_directory / 'Point2' / ('10d2_max_snr_M' + from_to_M_string)
+    outp_plot_capacity = out_directory / 'Point2' / ('10d2_capacity_M' + from_to_M_string)
+    outp_plot_avg_br = out_directory / 'Point2' / ('10d2_average_bit_rate_M' + from_to_M_string)
+    outp_plot_min_br = out_directory / 'Point2' / ('10d2_min_bit_rate_M' + from_to_M_string)
+    outp_plot_max_br = out_directory / 'Point2' / ('10d2_max_bit_rate_M' + from_to_M_string)
+    outp_plot_block_events = out_directory / 'Point2' / ('10d2_blocking_events_M' + from_to_M_string)
+    outp_plot_connections = out_directory / 'Point2' / ('10d2_successful_connections_M' + from_to_M_string)
+
+    string_for_titles = 'with M from ' + str(M_list[0]) + ' to ' + str(M_list[len(M_list)-1])
+    utls.plot_bar(figure_num=13, list_data=[[average_snr_fixed_per_M[i] for i in range(0, len(M_list))],
+                                            [average_snr_flex_per_M[i] for i in range(0, len(M_list))],
+                                            [average_snr_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='SNR, dB',
+                  title='Network congestion analysis - Average SNR, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_avg_snr)
+
+    utls.plot_bar(figure_num=14, list_data=[[minimum_snr_fixed_per_M[i] for i in range(0, len(M_list))],
+                                            [minimum_snr_flex_per_M[i] for i in range(0, len(M_list))],
+                                            [minimum_snr_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='SNR, dB',
+                  title='Network congestion analysis - Minimum SNR, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_min_snr)
+
+    utls.plot_bar(figure_num=15, list_data=[[maximum_snr_fixed_per_M[i] for i in range(0, len(M_list))],
+                                            [maximum_snr_flex_per_M[i] for i in range(0, len(M_list))],
+                                            [maximum_snr_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='SNR, dB',
+                  title='Network congestion analysis - Maximum SNR, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_max_snr)
+
+    utls.plot_bar(figure_num=16, list_data=[[capacities_fixed_rate_per_M[i] / 1000 for i in range(0, len(M_list))],
+                                            [capacities_flex_rate_per_M[i] / 1000 for i in range(0, len(M_list))],
+                                            [capacities_shannon_per_M[i] / 1000 for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Capacity, Tbps',
+                  title='Network congestion analysis - Total capacity, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_capacity)
+
+    utls.plot_bar(figure_num=17, list_data=[[average_bit_rate_fixed_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [average_bit_rate_flex_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [average_bit_rate_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Bit rate, Gbps',
+                  title='Network congestion analysis - Average bit rate, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_avg_br)
+
+    utls.plot_bar(figure_num=18, list_data=[[minimum_bit_rate_fixed_per_M[i] for i in range(0, len(M_list))],
+                                            [minimum_bit_rate_flex_per_M[i] for i in range(0, len(M_list))],
+                                            [minimum_bit_rate_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Bit rate, Gbps',
+                  title='Network congestion analysis - Minimum bit rate, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_min_br)
+
+    utls.plot_bar(figure_num=19, list_data=[[maximum_bit_rate_fixed_per_M[i] for i in range(0, len(M_list))],
+                                            [maximum_bit_rate_flex_per_M[i] for i in range(0, len(M_list))],
+                                            [maximum_bit_rate_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Bit rate, Gbps',
+                  title='Network congestion analysis - Maximum bit rate, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_max_br)
+
+    utls.plot_bar(figure_num=20, list_data=[[number_blocking_events_fixed_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [number_blocking_events_flex_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [number_blocking_events_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Number of blocking events',
+                  title='Network congestion analysis - Blocking Events, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_block_events)
+
+    utls.plot_bar(figure_num=21, list_data=[[number_connections_fixed_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [number_connections_flex_rate_per_M[i] for i in range(0, len(M_list))],
+                                            [number_connections_shannon_per_M[i] for i in range(0, len(M_list))]],
+                  bbox_to_anchor=(0.5, -0.35), bottom=0.25, loc='lower center', edge_color='k', color=['r', 'b', 'g'],
+                  label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Number of connections',
+                  title='Network congestion analysis - Successful connections, ' + string_for_titles, myalpha=1,
+                  x_ticks=[M for M in M_list])
+    if save_my_figure:
+        plt.savefig(outp_plot_connections)
+
+    plt.show()
