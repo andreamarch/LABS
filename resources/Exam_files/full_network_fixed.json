@@ -7,6 +7,7 @@
             "F",
             "G"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             306108,
             314254
@@ -329,6 +330,7 @@
             "C",
             "D"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             56832,
             -252924
@@ -394,6 +396,7 @@
             "E",
             "B"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             450718,
             -366055
@@ -522,6 +525,7 @@
             "F",
             "G"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             133756,
             460080
@@ -735,6 +739,7 @@
             "C",
             "G"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             -270282,
             -271138
@@ -862,6 +867,7 @@
             "D",
             "G"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             541106,
             -52818
@@ -990,6 +996,7 @@
             "E",
             "F"
         ],
+        "transceiver": "fixed_rate",
         "position": [
             119191,
             -171771
