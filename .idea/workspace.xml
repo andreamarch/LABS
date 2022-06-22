@@ -254,6 +254,11 @@
           <line>68</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Tasks/LAB10/LAB10.py</url>
+          <line>411</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">

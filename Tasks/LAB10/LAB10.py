@@ -18,7 +18,7 @@ file_shannon = in_directory / 'nodes_full_shannon.json'
 # simulation flags
 save_my_figure = False
 verbose = False
-do_simulations = [True, True]
+do_simulations = [False, True]
 
 # network generation
 network_fixed = el.Network(file_fixed)
@@ -29,18 +29,18 @@ network_shan = el.Network(file_shannon)
 network_shan.connect()
 
 # ----------------- POINT 1 (Single Traffic Matrix) -----------------
-# output file paths
-outp_plot_avg_snr = out_directory / 'Point1' / '10d1_average_snr'
-outp_plot_min_snr = out_directory / 'Point1' / '10d1_min_snr'
-outp_plot_max_snr = out_directory / 'Point1' / '10d1_max_snr'
-outp_plot_capacity = out_directory / 'Point1' / '10d1_capacity'
-outp_plot_avg_br = out_directory / 'Point1' / '10d1_average_bit_rate'
-outp_plot_min_br = out_directory / 'Point1' / '10d1_min_bit_rate'
-outp_plot_max_br = out_directory / 'Point1' / '10d1_max_bit_rate'
-outp_plot_block_events = out_directory / 'Point1' / '10d1_blocking_events'
-outp_plot_connections = out_directory / 'Point1' / '10d1_successful_connections'
-
 if do_simulations[0]:
+    # output file paths
+    outp_plot_avg_snr = out_directory / 'Point1' / '10d1_average_snr'
+    outp_plot_min_snr = out_directory / 'Point1' / '10d1_min_snr'
+    outp_plot_max_snr = out_directory / 'Point1' / '10d1_max_snr'
+    outp_plot_capacity = out_directory / 'Point1' / '10d1_capacity'
+    outp_plot_avg_br = out_directory / 'Point1' / '10d1_average_bit_rate'
+    outp_plot_min_br = out_directory / 'Point1' / '10d1_min_bit_rate'
+    outp_plot_max_br = out_directory / 'Point1' / '10d1_max_bit_rate'
+    outp_plot_block_events = out_directory / 'Point1' / '10d1_blocking_events'
+    outp_plot_connections = out_directory / 'Point1' / '10d1_successful_connections'
+
     connections_fixed_per_M = []
     number_connections_fixed_rate_per_M = []
     number_blocking_events_fixed_rate_per_M = []
@@ -259,8 +259,8 @@ if do_simulations[0]:
         print('Average minimum bit rate at run', counter + 1, '=', average_min_bit_rate_shannon, 'Gbps')
         print('Average maximum bit rate at run', counter + 1, '=', average_max_bit_rate_shannon, 'Gbps')
         print('Average number of blocking events at run', counter + 1, '=', average_blocking_events_shannon)
-        print('Average number of successful connections at run', counter + 1, '=',
-              average_successful_connections_shannon)
+        print('Average number of successful connections at run', counter + 1, '=',average_successful_connections_shannon)
+        print()
         utls.free_lines_and_switch_matrix(file_shannon, network_shan)
 
         if counter == 0:
@@ -370,4 +370,121 @@ if do_simulations[0]:
     if save_my_figure:
         plt.savefig(outp_plot_connections)
 
-    plt.show()
+# ----------------- POINT 1 (Single Traffic Matrix) -----------------
+if do_simulations[1]:
+    connections_fixed_per_M = []
+    number_connections_fixed_rate_per_M = []
+    number_blocking_events_fixed_rate_per_M = []
+    capacities_fixed_rate_per_M = []
+    average_bit_rate_fixed_rate_per_M = []
+    minimum_snr_fixed_per_M = []
+    maximum_snr_fixed_per_M = []
+    average_snr_fixed_per_M = []
+
+    connections_flex_per_M = []
+    number_connections_flex_rate_per_M = []
+    number_blocking_events_flex_rate_per_M = []
+    capacities_flex_rate_per_M = []
+    average_bit_rate_flex_rate_per_M = []
+    minimum_snr_flex_per_M = []
+    maximum_snr_flex_per_M = []
+    average_snr_flex_per_M = []
+
+    connections_shannon_per_M = []
+    number_connections_shannon_per_M = []
+    number_blocking_events_shannon_per_M = []
+    capacities_shannon_per_M = []
+    average_bit_rate_shannon_per_M = []
+    minimum_snr_shannon_per_M = []
+    maximum_snr_shannon_per_M = []
+    average_snr_shannon_per_M = []
+
+    M_list = []
+    for M in range(1, 52, 5):
+        M_list.append(M)
+        print('----------------------')
+        print('Simulation with M =', M)
+        print('----------------------')
+        print()
+        traffic_matrix_fixed = utls.generate_traffic_matrix(network_fixed, M)
+        [connection_tm_fixed, saturation_fixed] = network_fixed.deploy_traffic_matrix(traffic_matrix_fixed)
+        [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_fixed)
+        [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_fixed)
+        [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_fixed)
+        if saturation_fixed:
+            print('Fixed network for M =', M, ': network was saturated.')
+        elif not saturation_fixed:
+            print('Fixed network for M =', M, ': traffic matrix was saturated')
+        connections_fixed_per_M.append(successful_connections + blocking_events)
+        number_connections_fixed_rate_per_M.append(successful_connections)
+        number_blocking_events_fixed_rate_per_M.append(blocking_events)
+        capacities_fixed_rate_per_M.append(total_capacity)
+        average_bit_rate_fixed_rate_per_M.append(avg_bit_rate)
+        average_snr_fixed_per_M.append(avg_snr)
+        maximum_snr_fixed_per_M.append(max_snr)
+        minimum_snr_fixed_per_M.append(min_snr)
+        percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
+        print('Number of successful connections:', successful_connections, '.')
+        print('Number of blocking events:', blocking_events, '.')
+        print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
+        print('Average bit rate =', avg_bit_rate, 'Gbps.')
+        print('Average SNR =', avg_snr, 'dB')
+        print('Minimum SNR =', min_snr, 'dB')
+        print('Maximum SNR =', max_snr, 'dB')
+        print()
+        utls.free_lines_and_switch_matrix(file_fixed, network_fixed)
+        traffic_matrix_flex = utls.generate_traffic_matrix(network_flex, M)
+        [connection_tm_flex, saturation_flex] = network_flex.deploy_traffic_matrix(traffic_matrix_flex)
+        [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_flex)
+        [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_flex)
+        [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_flex)
+        if saturation_flex:
+            print('Flexible network for M =', M, ': network was saturated.')
+        elif not saturation_flex:
+            print('Flexible network for M =', M, ': traffic matrix was saturated')
+        connections_flex_per_M.append(successful_connections + blocking_events)
+        number_connections_flex_rate_per_M.append(successful_connections)
+        number_blocking_events_flex_rate_per_M.append(blocking_events)
+        capacities_flex_rate_per_M.append(total_capacity)
+        average_bit_rate_flex_rate_per_M.append(avg_bit_rate)
+        average_snr_flex_per_M.append(avg_snr)
+        maximum_snr_flex_per_M.append(max_snr)
+        minimum_snr_flex_per_M.append(min_snr)
+        percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
+        print('Number of successful connections:', successful_connections, '.')
+        print('Number of blocking events:', blocking_events, '.')
+        print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
+        print('Average bit rate =', avg_bit_rate, 'Gbps.')
+        print('Average SNR =', avg_snr, 'dB')
+        print('Minimum SNR =', min_snr, 'dB')
+        print('Maximum SNR =', max_snr, 'dB')
+        print()
+        utls.free_lines_and_switch_matrix(file_flex, network_flex)
+        traffic_matrix_shan = utls.generate_traffic_matrix(network_shan, M)
+        [connection_tm_shan, saturation_shan] = network_shan.deploy_traffic_matrix(traffic_matrix_shan)
+        [successful_connections, blocking_events] = utls.compute_successful_blocking_events(connection_tm_shan)
+        [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_shan)
+        [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_shan)
+        if saturation_shan:
+            print('Shannon network for M =', M, ': network was saturated.')
+        elif not saturation_shan:
+            print('Shannon network for M =', M, ': traffic matrix was saturated')
+        connections_shannon_per_M.append(successful_connections + blocking_events)
+        number_connections_shannon_per_M.append(successful_connections)
+        number_blocking_events_shannon_per_M.append(blocking_events)
+        capacities_shannon_per_M.append(total_capacity)
+        average_bit_rate_shannon_per_M.append(avg_bit_rate)
+        average_snr_shannon_per_M.append(avg_snr)
+        maximum_snr_shannon_per_M.append(max_snr)
+        minimum_snr_shannon_per_M.append(min_snr)
+        percentage_blocking_events = blocking_events / (blocking_events + successful_connections) * 100
+        print('Number of successful connections:', successful_connections, '.')
+        print('Number of blocking events:', blocking_events, '.')
+        print('Total capacity allocated =', total_capacity / 1000, 'Tbps.')
+        print('Average bit rate =', avg_bit_rate, 'Gbps.')
+        print('Average SNR =', avg_snr, 'dB')
+        print('Minimum SNR =', min_snr, 'dB')
+        print('Maximum SNR =', max_snr, 'dB')
+        print()
+        print()
+        utls.free_lines_and_switch_matrix(file_shannon, network_shan)
