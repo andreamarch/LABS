@@ -22,11 +22,6 @@ elif input_file_flag == 'exam':
 else:
     raise ValueError('It can only be exam or lab...')
 
-# simulation flags
-save_my_figure = False
-verbose = False
-do_simulations = [False, False]
-
 # network generation
 network_fixed = el.Network(file_fixed)
 network_fixed.connect()
@@ -35,10 +30,7 @@ network_flex.connect()
 network_shan = el.Network(file_shannon)
 network_shan.connect()
 
-print(utls.line_intersections('AE', 'DB', network_fixed))
-print(utls.line_intersections('FG', 'CA', network_fixed))
-network_fixed.draw_network()
-
+# network_fixed.draw_network()
 
 # ----------------- POINT 1 (Single Traffic Matrix) -----------------
 if do_simulations[0]:

@@ -296,7 +296,7 @@ class Network:
         coord_array = np.transpose(np.array([x, y]))
         hull = ConvexHull(coord_array)  # Get the boundary coordinates
         coord_array = coord_array[hull.vertices]
-        if input_file_flag == 'exam':
+        if input_file_flag == 'exam':  # add the outer intersection points
             intersection1 = utils.line_intersections('AE', 'DB', self)
             intersection2 = utils.line_intersections('FG', 'CA', self)
             coord_array = np.vstack((coord_array[0], intersection1, coord_array[1:3], intersection2, coord_array[3:5]))
@@ -311,6 +311,7 @@ class Network:
         plt.title('Weighted graph of the Network')
         plt.xlabel('x, km')
         plt.ylabel('y, km')
+        plt.grid()
         for i in label:
             indx = label.index(i)
             for j in self.nodes[i].connected_nodes:
@@ -319,26 +320,29 @@ class Network:
                         indx2 = label.index(k)
                         xx = [x[indx2], x[indx]]
                         yy = [y[indx2], y[indx]]
-                        plt.plot(xx, yy, 'k-.', linewidth=0.5)  # lines
+                        plt.plot(xx, yy, 'g', linewidth=0.5)  # lines
         for xx, yy, s in zip(x, y, label):
-            circ = plt.Circle((xx, yy), radius=0.5e2)  # circles
+            circ = plt.Circle((xx, yy), radius=0.4e2)  # circles
             circ.set_facecolor('c')
             circ.set_edgecolor('k')
-            ax.txt = plt.text(xx - 0.13e2, yy - 0.13e2, s, fontsize=14)  # labels
+            ax.txt = plt.text(xx - 0.2e2, yy - 0.2e2, s, fontsize=13)  # labels
             ax.add_patch(circ)
         # Save as png
-        plt.savefig(out_dir / 'EXAM_res' / 'Network_Topology.png')
+        if save_my_figure:
+            plt.savefig(out_dir / 'EXAM_res' / 'Network_Topology.png')
         fig2, ax2 = plt.subplots(1)
         ax2.set_aspect('equal')
         plt.axis([-4e2, 6.5e2, -6e2, 6e2])
-        plt.title('Weighted graph of the Network')
+        plt.title('Boundary points of the network')
         plt.xlabel('x, km')
         plt.ylabel('y, km')
+        plt.grid()
         ax2.scatter(x_array, y_array, color='red')
         x_array = np.append(x_array, x_array[0])
         y_array = np.append(y_array, y_array[0])
-        plt.plot(x_array, y_array, 'k', linewidth=0.5)
-        plt.savefig(out_dir / 'EXAM_res' / 'simplified_network_for_hull.png')
+        plt.plot(x_array, y_array, 'g', linewidth=1)
+        if save_my_figure:
+            plt.savefig(out_dir / 'EXAM_res' / 'simplified_network_for_hull.png')
         # Show the image
         plt.show()
 
