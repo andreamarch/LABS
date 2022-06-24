@@ -7,18 +7,25 @@ from core.parameters import *
 
 # import/export paths
 root = Path(__file__).parent.parent.parent
-in_directory = root / 'resources'
-out_directory = root / 'results' / 'LAB10_res'
-
-# input files
-file_fixed = in_directory / 'nodes_full_fixed_rate.json'
-file_flex = in_directory / 'nodes_full_flex_rate.json'
-file_shannon = in_directory / 'nodes_full_shannon.json'
+if input_file_flag == 'lab':
+    in_directory = root / 'resources'
+    out_directory = root / 'results' / 'LAB10_res'
+    file_fixed = in_directory / 'nodes_full_fixed_rate.json'
+    file_flex = in_directory / 'nodes_full_flex_rate.json'
+    file_shannon = in_directory / 'nodes_full_shannon.json'
+elif input_file_flag == 'exam':
+    in_directory = root / 'resources' / 'Exam_files'
+    out_directory = root / 'results' / 'EXAM_res'
+    file_fixed = in_directory / 'full_network_fixed.json'
+    file_flex = in_directory / 'full_network_flex.json'
+    file_shannon = in_directory / 'full_network_shannon.json'
+else:
+    raise ValueError('It can only be exam or lab...')
 
 # simulation flags
 save_my_figure = False
 verbose = False
-do_simulations = [False, True]
+do_simulations = [False, False]
 
 # network generation
 network_fixed = el.Network(file_fixed)
@@ -27,6 +34,11 @@ network_flex = el.Network(file_flex)
 network_flex.connect()
 network_shan = el.Network(file_shannon)
 network_shan.connect()
+
+print(utls.line_intersections('AE', 'DB', network_fixed))
+print(utls.line_intersections('FG', 'CA', network_fixed))
+network_fixed.draw_network()
+
 
 # ----------------- POINT 1 (Single Traffic Matrix) -----------------
 if do_simulations[0]:
@@ -369,6 +381,8 @@ if do_simulations[0]:
                   title='Single Matrix analysis - Successful connections, ' + string_for_titles, myalpha=1)
     if save_my_figure:
         plt.savefig(outp_plot_connections)
+
+    plt.show()
 
 # ----------------- POINT 2 (Network Congestion) -----------------
 if do_simulations[1]:

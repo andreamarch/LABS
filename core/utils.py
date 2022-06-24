@@ -267,7 +267,7 @@ def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', colo
     plt.grid()
     if x_ticks:
         # also define the labels we'll use (note this MUST have the same size as `xticks`!)
-        xtick_labels = ['M='+str(M) for M in x_ticks]
+        xtick_labels = ['M=' + str(M) for M in x_ticks]
         # add the ticks and labels to the plot
         ax.set_xticks(x)
         ax.set_xticklabels(xtick_labels)
@@ -292,3 +292,24 @@ def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', colo
         #     os.makedirs('../Results/Lab9')
         plt.savefig(savefig_path)
 
+
+# Function for the computation of the intersection of two given lines
+def line_intersections(line1, line2, network):
+    coord_line1 = [[network.nodes[line1[0]].position[0] / 1000, network.nodes[line1[0]].position[1] / 1000],
+                   [network.nodes[line1[1]].position[0] / 1000, network.nodes[line1[1]].position[1] / 1000]]
+    coord_line2 = [[network.nodes[line2[0]].position[0] / 1000, network.nodes[line2[0]].position[1] / 1000],
+                   [network.nodes[line2[1]].position[0] / 1000, network.nodes[line2[1]].position[1] / 1000]]
+    xdiff = (coord_line1[0][0] - coord_line1[1][0], coord_line2[0][0] - coord_line2[1][0])
+    ydiff = (coord_line1[0][1] - coord_line1[1][1], coord_line2[0][1] - coord_line2[1][1])
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        raise Exception('lines do not intersect')
+
+    d = (det(*coord_line1), det(*coord_line2))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    return x, y

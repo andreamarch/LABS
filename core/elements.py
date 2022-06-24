@@ -12,6 +12,7 @@ import pandas as pd
 from scipy.special import erfcinv
 from core.parameters import *
 from scipy.spatial import ConvexHull
+from descartes import PolygonPatch
 
 # import/export paths
 root = Path(__file__).parent.parent
@@ -294,12 +295,19 @@ class Network:
             y.append(yi)
         coord_array = np.transpose(np.array([x, y]))
         hull = ConvexHull(coord_array)  # Get the boundary coordinates
-        network_area = utils.polygon_area(coord_array[hull.vertices, 0], coord_array[hull.vertices, 1])  # compute area
+        coord_array = coord_array[hull.vertices]
+        if input_file_flag == 'exam':
+            intersection1 = utils.line_intersections('AE', 'DB', self)
+            intersection2 = utils.line_intersections('FG', 'CA', self)
+            coord_array = np.vstack((coord_array[0], intersection1, coord_array[1:3], intersection2, coord_array[3:5]))
+        x_array = coord_array[:, 0]
+        y_array = coord_array[:, 1]
+        network_area = utils.polygon_area(x_array, y_array)  # compute area
         print('The area of the network is around', '{:.2f}'.format(network_area), 'km^2')
 
         fig, ax = plt.subplots(1)
         ax.set_aspect('equal')
-        plt.axis([-5e2, 5e2, -5e2, 5.5e2])
+        plt.axis([-4e2, 6.5e2, -6e2, 6e2])
         plt.title('Weighted graph of the Network')
         plt.xlabel('x, km')
         plt.ylabel('y, km')
@@ -319,7 +327,18 @@ class Network:
             ax.txt = plt.text(xx - 0.13e2, yy - 0.13e2, s, fontsize=14)  # labels
             ax.add_patch(circ)
         # Save as png
-        plt.savefig(out_dir / '7_wgraph.png')
+        plt.savefig(out_dir / 'EXAM_res' / 'Network_Topology.png')
+        fig2, ax2 = plt.subplots(1)
+        ax2.set_aspect('equal')
+        plt.axis([-4e2, 6.5e2, -6e2, 6e2])
+        plt.title('Weighted graph of the Network')
+        plt.xlabel('x, km')
+        plt.ylabel('y, km')
+        ax2.scatter(x_array, y_array, color='red')
+        x_array = np.append(x_array, x_array[0])
+        y_array = np.append(y_array, y_array[0])
+        plt.plot(x_array, y_array, 'k', linewidth=0.5)
+        plt.savefig(out_dir / 'EXAM_res' / 'simplified_network_for_hull.png')
         # Show the image
         plt.show()
 

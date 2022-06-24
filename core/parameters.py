@@ -23,3 +23,5 @@ number_of_connections = 100
 
 max_number_of_iterations = 200  # max number of iterations for the deploy_traffic_matrix
 be_threshold = 15/100  # threshold for the number of blocking events
+
+input_file_flag = 'exam'  # 'exam' or 'lab'
