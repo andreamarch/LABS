@@ -4,10 +4,8 @@
     <list default="true" id="0b686254-934d-46a1-8fb0-ca3ed4ed6641" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Tasks/LAB10/LAB10.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tasks/LAB10/LAB10.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/elements.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/elements.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/parameters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/results/EXAM_res/Network_Topology.png" beforeDir="false" afterPath="$PROJECT_DIR$/results/EXAM_res/Network_Topology.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/results/EXAM_res/simplified_network_for_hull.png" beforeDir="false" afterPath="$PROJECT_DIR$/results/EXAM_res/simplified_network_for_hull.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -255,24 +253,9 @@
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/core/elements.py</url>
-          <line>69</line>
-          <option name="timeStamp" value="49" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Tasks/LAB10/LAB10.py</url>
-          <line>426</line>
-          <option name="timeStamp" value="55" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Tasks/LAB10/LAB10.py</url>
-          <line>34</line>
-          <option name="timeStamp" value="56" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/core/elements.py</url>
-          <line>297</line>
-          <option name="timeStamp" value="62" />
+          <line>311</line>
+          <option name="timeStamp" value="77" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

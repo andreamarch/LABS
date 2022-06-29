@@ -160,19 +160,15 @@ def compute_average_max_min_snr(connections):
     return snr_average, snr_max, snr_min
 
 
-# Function for counting the number of occurrencies of the various lines
-def count_line_usage(connections, net_lines):
-    list_inputs = [connection.input for connection in connections]
-    list_outputs = [connection.output for connection in connections]
-    lines = [line for line in net_lines.keys()]
-    occurrences_in = [0 for i in range(0, len(lines))]
-    occurrences_out = [0 for i in range(0, len(lines))]
-    for ind in list_inputs:
-        occurrences_in[lines.index(ind)] += 1
-    for ind in list_outputs:
-        occurrences_out[lines.index(ind)] += 1
-    return lines, occurrences_in, occurrences_out
-
+# Function for computing the usage of each line
+def count_line_usage(network):
+    lines = network.lines
+    line_list = []
+    occupation = []
+    for line in lines.keys():
+        line_list.append(line)
+        occupation.append(10 - sum(lines[line].state))
+    return line_list, occupation
 
 # Function for computing the number of successful connections and blocking events
 def compute_successful_blocking_events(connections):
@@ -266,8 +262,10 @@ def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', colo
     ax.set_axisbelow(True)
     plt.grid()
     if x_ticks:
-        # also define the labels we'll use (note this MUST have the same size as `xticks`!)
-        xtick_labels = ['M=' + str(M) for M in x_ticks]
+        if len(x_ticks) == 30 or len(x_ticks) == 42 or len(x_ticks) == 24:
+            xtick_labels = [str(M) for M in x_ticks]
+        else:
+            xtick_labels = ['M=' + str(M) for M in x_ticks]
         # add the ticks and labels to the plot
         ax.set_xticks(x)
         ax.set_xticklabels(xtick_labels)
@@ -313,3 +311,51 @@ def line_intersections(line1, line2, network):
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
     return x, y
+
+
+# Function for computing the average node degree
+def compute_node_degree(network):
+    nodes = network.nodes
+    connected_nodes_dictionary = {n: nodes[n].connected_nodes for n in nodes.keys()}
+    node_degree_dictionary = {n: len(connected_nodes_dictionary[n]) for n in connected_nodes_dictionary.keys()}
+    average_node_degree = sum(list(node_degree_dictionary.values())) / len(nodes)
+    return average_node_degree
+
+
+# Function for the analysis of the length of the lines (max, min, average)
+def length_line_analysis(network):
+    lines = dict(network.lines)
+    line_labels = [line_label for line_label in lines.keys()]
+    line_lengths = [lines[n].length / 1000 for n in lines.keys()]  # in [km]
+    max_length = max(line_lengths)
+    position = line_lengths.index(max_length)
+    max_length = ("{:.2f}".format(max_length), line_labels[position])
+    min_length = min(line_lengths)
+    position = line_lengths.index(min_length)
+    min_length = ("{:.2f}".format(min_length), line_labels[position])
+    avg_length = "{:.2f}".format(sum(line_lengths) / len(line_lengths))
+    return avg_length, max_length, min_length
+
+
+# Function for the computation of the average line occupation
+def average_line_occupation(network):
+    lines = network.lines
+    number_of_lines = len(lines)
+    active_channels = 0
+    for line in lines.values():
+        active_channels += 10 - sum(line.state)
+    avg_active_channels = active_channels / number_of_lines
+    avg_occupancy = avg_active_channels / number_of_channels * 100  # [%]
+    return avg_active_channels, avg_occupancy
+
+
+# Function for computing the occurrences of every input output pair.
+def compute_in_out_node_distribution(network, connection_list):
+    nodes = network.nodes
+    pairs_list = [n1 + n2 for n1 in nodes.keys() for n2 in nodes.keys() if n1 != n2]
+    occurrence = [0] * len(pairs_list)
+    for connection in connection_list:
+        pair = connection.input + connection.output
+        location = pairs_list.index(pair)
+        occurrence[location] += 1
+    return pairs_list, occurrence
