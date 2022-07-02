@@ -6,6 +6,7 @@ import random
 import core.elements as el
 from core.parameters import *
 import matplotlib.pyplot as plt
+import math
 
 
 # function for constructing the data frame
@@ -359,3 +360,13 @@ def compute_in_out_node_distribution(network, connection_list):
         location = pairs_list.index(pair)
         occurrence[location] += 1
     return pairs_list, occurrence
+
+
+# Function for computing the average, max and minimum latency
+def compute_avg_max_min_latency(connections):
+    latency_list = [connections[k].latency for k in range(0, len(connections)) if not math.isnan(connections[k].latency)]
+    length_list = len(latency_list)
+    avg_latency = sum(latency_list) / length_list
+    max_latency = max(latency_list)
+    min_latency = min(latency_list)
+    return avg_latency, max_latency, min_latency

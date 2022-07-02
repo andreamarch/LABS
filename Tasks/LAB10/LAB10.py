@@ -89,6 +89,9 @@ if do_simulations[0]:
     average_blocking_events_fixed = 0
     average_successful_connections_fixed = 0
     average_congestion_fixed = 0
+    average_average_latency_fixed = 0
+    average_max_latency_fixed = 0
+    average_min_latency_fixed = 0
 
     average_average_snr_flex = 0
     average_max_snr_flex = 0
@@ -100,6 +103,9 @@ if do_simulations[0]:
     average_blocking_events_flex = 0
     average_successful_connections_flex = 0
     average_congestion_flex = 0
+    average_average_latency_flex = 0
+    average_max_latency_flex = 0
+    average_min_latency_flex = 0
 
     average_average_snr_shannon = 0
     average_max_snr_shannon = 0
@@ -111,6 +117,9 @@ if do_simulations[0]:
     average_blocking_events_shannon = 0
     average_successful_connections_shannon = 0
     average_congestion_shannon = 0
+    average_average_latency_shannon = 0
+    average_max_latency_shannon = 0
+    average_min_latency_shannon = 0
 
     M_list = [16 for i in range(0, 100)]
     random_example_setter = random.randint(0, len(M_list) - 1)
@@ -134,6 +143,7 @@ if do_simulations[0]:
         [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_fixed)
         [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_fixed)
         [_, congestion] = utls.average_line_occupation(network_fixed)
+        [avg_lat, max_lat, min_lat] = utls.compute_avg_max_min_latency(connection_tm_fixed)
         print()
         print('FIXED TRANSCEIVER STRATEGY')
         print('-------------------------------')
@@ -170,6 +180,9 @@ if do_simulations[0]:
         average_blocking_events_fixed = (average_blocking_events_fixed * counter + blocking_events) / (counter + 1)
         average_successful_connections_fixed = (average_successful_connections_fixed * counter + successful_connections) / (counter + 1)
         average_congestion_fixed = (average_congestion_fixed * counter + congestion) / (counter + 1)
+        average_average_latency_fixed = (average_average_latency_fixed * counter + avg_lat) / (counter + 1)
+        average_max_latency_fixed = (average_max_latency_fixed * counter + max_lat) / (counter + 1)
+        average_min_latency_fixed = (average_min_latency_fixed * counter + min_lat) / (counter + 1)
         print('Average average SNR at run', counter + 1, '=', average_average_snr_fixed, 'dB')
         print('Average minimum SNR at run', counter + 1, '=', average_min_snr_fixed, 'dB')
         print('Average maximum SNR at run', counter + 1, '=', average_max_snr_fixed, 'dB')
@@ -177,6 +190,9 @@ if do_simulations[0]:
         print('Average average bit rate at run', counter + 1, '=', average_average_bit_rate_fixed, 'Gbps')
         print('Average minimum bit rate at run', counter + 1, '=', average_min_bit_rate_fixed, 'Gbps')
         print('Average maximum bit rate at run', counter + 1, '=', average_max_bit_rate_fixed, 'Gbps')
+        print('Average average latency at run', counter + 1, '=', average_average_latency_fixed * 1e3, 'ms')
+        print('Average minimum latency at run', counter + 1, '=', average_min_latency_fixed * 1e3, 'ms')
+        print('Average maximum latency at run', counter + 1, '=', average_max_latency_fixed * 1e3, 'ms')
         print('Average number of blocking events at run', counter + 1, '=', average_blocking_events_fixed)
         print('Average number of successful connections at run', counter + 1, '=', average_successful_connections_fixed)
         print('Average wavelength congestion at run', counter + 1, '=', average_congestion_fixed, '%')
@@ -187,6 +203,7 @@ if do_simulations[0]:
         [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_flex)
         [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_flex)
         [_, congestion] = utls.average_line_occupation(network_flex)
+        [avg_lat, max_lat, min_lat] = utls.compute_avg_max_min_latency(connection_tm_flex)
         print()
         print('FLEXIBLE TRANSCEIVER STRATEGY')
         print('-------------------------------')
@@ -223,6 +240,9 @@ if do_simulations[0]:
         average_blocking_events_flex = (average_blocking_events_flex * counter + blocking_events) / (counter + 1)
         average_successful_connections_flex = (average_successful_connections_flex * counter + successful_connections) / (counter + 1)
         average_congestion_flex = (average_congestion_flex * counter + congestion) / (counter + 1)
+        average_average_latency_flex = (average_average_latency_flex * counter + avg_lat) / (counter + 1)
+        average_max_latency_flex = (average_max_latency_flex * counter + max_lat) / (counter + 1)
+        average_min_latency_flex = (average_min_latency_flex * counter + min_lat) / (counter + 1)
         print('Average average SNR at run', counter + 1, '=', average_average_snr_flex, 'dB')
         print('Average minimum SNR at run', counter + 1, '=', average_min_snr_flex, 'dB')
         print('Average maximum SNR at run', counter + 1, '=', average_max_snr_flex, 'dB')
@@ -230,6 +250,9 @@ if do_simulations[0]:
         print('Average average bit rate at run', counter + 1, '=', average_average_bit_rate_flex, 'Gbps')
         print('Average minimum bit rate at run', counter + 1, '=', average_min_bit_rate_flex, 'Gbps')
         print('Average maximum bit rate at run', counter + 1, '=', average_max_bit_rate_flex, 'Gbps')
+        print('Average average latency at run', counter + 1, '=', average_average_latency_flex * 1e3, 'ms')
+        print('Average minimum latency at run', counter + 1, '=', average_min_latency_flex * 1e3, 'ms')
+        print('Average maximum latency at run', counter + 1, '=', average_max_latency_flex * 1e3, 'ms')
         print('Average number of blocking events at run', counter + 1, '=', average_blocking_events_flex)
         print('Average number of successful connections at run', counter + 1, '=', average_successful_connections_flex)
         print('Average wavelength congestion at run', counter + 1, '=', average_congestion_flex, '%')
@@ -240,6 +263,7 @@ if do_simulations[0]:
         [total_capacity, avg_bit_rate, max_br, min_br] = utls.compute_network_capacity_and_avg_bit_rate(connection_tm_shan)
         [avg_snr, max_snr, min_snr] = utls.compute_average_max_min_snr(connection_tm_shan)
         [_, congestion] = utls.average_line_occupation(network_shan)
+        [avg_lat, max_lat, min_lat] = utls.compute_avg_max_min_latency(connection_tm_shan)
         print()
         print('SHANNON TRANSCEIVER STRATEGY')
         print('-------------------------------')
@@ -276,6 +300,9 @@ if do_simulations[0]:
         average_blocking_events_shannon = (average_blocking_events_shannon * counter + blocking_events) / (counter + 1)
         average_successful_connections_shannon = (average_successful_connections_shannon * counter + successful_connections) / (counter + 1)
         average_congestion_shannon = (average_congestion_shannon * counter + congestion) / (counter + 1)
+        average_average_latency_shannon = (average_average_latency_shannon * counter + avg_lat) / (counter + 1)
+        average_max_latency_shannon = (average_max_latency_shannon * counter + max_lat) / (counter + 1)
+        average_min_latency_shannon = (average_min_latency_shannon * counter + min_lat) / (counter + 1)
         print('Average average SNR at run', counter + 1, '=', average_average_snr_shannon, 'dB')
         print('Average minimum SNR at run', counter + 1, '=', average_min_snr_shannon, 'dB')
         print('Average maximum SNR at run', counter + 1, '=', average_max_snr_shannon, 'dB')
@@ -283,6 +310,9 @@ if do_simulations[0]:
         print('Average average bit rate at run', counter + 1, '=', average_average_bit_rate_shannon, 'Gbps')
         print('Average minimum bit rate at run', counter + 1, '=', average_min_bit_rate_shannon, 'Gbps')
         print('Average maximum bit rate at run', counter + 1, '=', average_max_bit_rate_shannon, 'Gbps')
+        print('Average average latency at run', counter + 1, '=', average_average_latency_shannon * 1e3, 'ms')
+        print('Average minimum latency at run', counter + 1, '=', average_min_latency_shannon * 1e3, 'ms')
+        print('Average maximum latency at run', counter + 1, '=', average_max_latency_shannon * 1e3, 'ms')
         print('Average number of blocking events at run', counter + 1, '=', average_blocking_events_shannon)
         print('Average number of successful connections at run', counter + 1, '=', average_successful_connections_shannon)
         print('Average wavelength congestion at run', counter + 1, '=', average_congestion_shannon, '%')

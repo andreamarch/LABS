@@ -25,8 +25,8 @@ max_number_of_iterations = 200  # max number of iterations for the deploy_traffi
 be_threshold = 15/100  # threshold for the number of blocking events
 
 # simulation flags
-save_my_figure = True
-draw_my_plots = True
+save_my_figure = False
+draw_my_plots = False
 verbose = False
-do_simulations = [False, True]
+do_simulations = [True, False]
 input_file_flag = 'exam'  # 'exam' or 'lab'
