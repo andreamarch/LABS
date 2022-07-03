@@ -242,7 +242,7 @@ def free_lines_and_switch_matrix(file, network):
 
 def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', color=None, label=None, title='', ylabel='',
              xlabel='', savefig_path=None, bbox_to_anchor=None, loc=None, bottom=None, NaN_display=False, myalpha=None,
-             remove_y_ticks=None):
+             remove_y_ticks=None, y_range=None):
     if NaN_display:
         list_data = list(np.nan_to_num(list_data))  # replace NaN with 0
 
@@ -260,6 +260,8 @@ def plot_bar(figure_num=None, list_data=None, x_ticks=None, edge_color='k', colo
     plt.title(title)
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
+    if y_range is not None:
+        plt.ylim(y_range[0], y_range[1])
     ax.set_axisbelow(True)
     plt.grid()
     if x_ticks:

@@ -758,7 +758,7 @@ if do_simulations[1]:
                       color=['m', 'b', 'tab:orange'],
                       label=['Fixed Rate', 'Flex Rate', 'Shannon Rate'], xlabel='M', ylabel='Capacity, Tbps',
                       title='Network congestion analysis - Total capacity, ' + string_for_titles, myalpha=1,
-                      x_ticks=[M for M in M_list])
+                      x_ticks=[M for M in M_list], y_range=[0, 90])
         if save_my_figure:
             plt.savefig(outp_plot_capacity)
 
